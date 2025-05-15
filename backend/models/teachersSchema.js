@@ -19,6 +19,10 @@ const teachersSchema = new mongoose.Schema({
     enum: ["teacher", "admin"],
     default: "teacher",
   },
+  otp: {
+    type: Number,
+    required: false,
+  },
 });
 
 export const Teachers = mongoose.model("Teachers", teachersSchema);

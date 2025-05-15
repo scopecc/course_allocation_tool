@@ -1,5 +1,5 @@
-import { CourseSlots } from "./courseSlotsSchema";
-import { Courses } from "./coursesSchema";
-import { Teachers } from "./teachersSchema";
+import { CourseSlots } from "./courseSlotsSchema.js";
+import { Courses } from "./coursesSchema.js";
+import { Teachers } from "./teachersSchema.js";
 
 export { CourseSlots, Courses, Teachers };

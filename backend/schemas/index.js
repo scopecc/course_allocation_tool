@@ -1,3 +1,3 @@
-import { authSchemas } from "./authSchemas";
+import authSchemas from "./authSchemas.js";
 
 export { authSchemas };
