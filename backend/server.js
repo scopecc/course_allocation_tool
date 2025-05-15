@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import connectDB from "./config/db.js";
 import dotenv from "dotenv";
+import appRouter from "./routes/index.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -15,6 +16,8 @@ app.use((req, res, next) => {
   console.log(`${req.method} ${req.url}`);
   next();
 });
+
+app.use("/api/v1", appRouter);
 
 app.get("/", (req, res) => {
   res.status(200).json({ message: `Healthy server running at port - ${PORT}` });
