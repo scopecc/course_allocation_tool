@@ -5,19 +5,19 @@ const coursesSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  course_name: {
+  courseName: {
     type: String,
     required: true,
   },
-  course_code: {
+  courseCode: {
     type: String,
     required: true,
   },
-  num_of_morning_slots: {
+  numOfMorningSlots: {
     type: Number,
     required: true,
   },
-  num_of_evening_slots: {
+  numOfEveningSlots: {
     type: Number,
     required: true,
   },

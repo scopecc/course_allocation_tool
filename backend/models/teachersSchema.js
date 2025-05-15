@@ -5,7 +5,7 @@ const teachersSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  employee_id: {
+  employeeId: {
     type: String,
     required: true,
   },

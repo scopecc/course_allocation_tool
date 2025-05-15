@@ -1,21 +1,21 @@
 import mongoose from "mongoose";
 
 const courseSlotsSchema = new mongoose.Schema({
-  course_id: {
+  courseId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Courses",
     required: true,
   },
-  teacher_id: {
+  teacherId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Teachers",
     required: true,
   },
-  slot_number: {
+  slotNumber: {
     type: String,
     required: true,
   },
-  slot_type: {
+  slotType: {
     type: String,
     required: true,
   },
