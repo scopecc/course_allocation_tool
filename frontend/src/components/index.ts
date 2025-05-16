@@ -1,5 +1,4 @@
 import CustomComponent from "./custom-component";
+import Loader from "./loader";
 
-export {
-    CustomComponent
-}
+export { CustomComponent, Loader };

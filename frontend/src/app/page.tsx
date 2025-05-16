@@ -16,7 +16,7 @@ const HomePage = () => {
           <AccordionItem value="item-2">
             <AccordionTrigger>From ShadCN</AccordionTrigger>
             <AccordionContent>
-              It'll automatically add components in the <span className='font-mono bg-gray-400 px-2 py-1 rounded-md'>/components/ui</span> folder and import and export it in <span className='font-mono bg-gray-400 px-2 py-1 rounded-md'>/components/ui/index.ts</span> should be done manually file
+              It&apos;ll automatically add components in the <span className='font-mono bg-gray-400 px-2 py-1 rounded-md'>/components/ui</span> folder and import and export it in <span className='font-mono bg-gray-400 px-2 py-1 rounded-md'>/components/ui/index.ts</span> should be done manually file
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-3">
@@ -29,7 +29,7 @@ const HomePage = () => {
                 <span className='font-mono bg-gray-400 px-2 py-1 rounded-md'>fix</span> a bug fix has occurred
               </div>
               <div className='m-2'>
-                <span className='font-mono bg-gray-400 px-2 py-1 rounded-md'>chore</span> changes that do not relate to a fix or feature and don't modify <span className='font-mono bg-gray-400 px-2 py-1 rounded-md'>src</span> or <span className='font-mono bg-gray-400 px-2 py-1 rounded-md'>test</span> files (for example updating dependencies)
+                <span className='font-mono bg-gray-400 px-2 py-1 rounded-md'>chore</span> changes that do not relate to a fix or feature and don&apos;t modify <span className='font-mono bg-gray-400 px-2 py-1 rounded-md'>src</span> or <span className='font-mono bg-gray-400 px-2 py-1 rounded-md'>test</span> files (for example updating dependencies)
               </div>
               <div className='m-2'>
                 <span className='font-mono bg-gray-400 px-2 py-1 rounded-md'>refactor</span> refactored code that neither fixes a bug nor adds a feature

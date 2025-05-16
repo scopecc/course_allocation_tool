@@ -5,16 +5,11 @@ import sendMail from "../utilities/nodemailer.js";
 
 async function signIn(req, res) {
   const { email, employeeId } = req.body;
-
-  const validationResult = authSchemas.signInSchema.safeParse({
-    email,
-    employeeId,
-  });
-  if (!validationResult.success) {
+  if (!email && !employeeId) {
     return res.status(400).json({
       status: "error",
       error: "Invalid input",
-      message: validationResult.error.format(),
+      message: "Please provide either email or employee ID",
     });
   }
 
@@ -31,7 +26,7 @@ async function signIn(req, res) {
     } else {
       const otp = Math.floor(100000 + Math.random() * 900000);
       const updatedUser = await Teachers.findOneAndUpdate(
-        { email: email },
+        { email: existingUser.email },
         { otp: otp },
         { new: true }
       );
@@ -83,7 +78,9 @@ async function verifyOtp(req, res) {
     return res.status(400).json({
       status: "error",
       error: "Invalid input",
-      message: validationResult.error.format(),
+      message:
+        validationResult.error.format().otp?._errors[0] ||
+        validationResult.error.format().employeeId?._errors[0],
     });
   }
   try {
