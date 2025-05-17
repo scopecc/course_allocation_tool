@@ -11,13 +11,18 @@ const courseSlotsSchema = new mongoose.Schema({
     ref: "Teachers",
     required: true,
   },
-  slotNumber: {
-    type: String,
+  orderInSlots: {
+    type: Number,
     required: true,
   },
   slotType: {
     type: String,
-    required: true,
+  },
+  theorySlot: {
+    type: String,
+  },
+  labSlot: {
+    type: String,
   },
 });
 
