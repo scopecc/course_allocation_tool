@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { authSchemas } from "../schemas/index.js";
-import { Teachers } from "../models/index.js";
+import { Users } from "../models/index.js";
 import sendMail from "../utilities/nodemailer.js";
 
 async function signIn(req, res) {
@@ -14,7 +14,7 @@ async function signIn(req, res) {
   }
 
   try {
-    const existingUser = await Teachers.findOne({
+    const existingUser = await Users.findOne({
       $or: [{ email: email }, { employeeId: employeeId }],
     });
     if (!existingUser) {
@@ -25,7 +25,7 @@ async function signIn(req, res) {
       });
     } else {
       const otp = Math.floor(100000 + Math.random() * 900000);
-      const updatedUser = await Teachers.findOneAndUpdate(
+      const updatedUser = await Users.findOneAndUpdate(
         { email: existingUser.email },
         { otp: otp },
         { new: true }
@@ -84,7 +84,7 @@ async function verifyOtp(req, res) {
     });
   }
   try {
-    const user = await Teachers.findOne({ employeeId: employeeId });
+    const user = await Users.findOne({ employeeId: employeeId });
     if (!user) {
       return res.status(404).json({
         status: "error",
@@ -100,7 +100,8 @@ async function verifyOtp(req, res) {
       });
     }
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
+      // set to 1h before deployment
+      expiresIn: "24h",
     });
     return res.status(200).json({
       status: "success",

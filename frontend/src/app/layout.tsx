@@ -7,11 +7,13 @@ import { ThemeProvider } from "@/components/theme-provider";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  weight: ['400', '500', '700'],
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  weight: ['400', '500', '700'],
 });
 
 export const metadata: Metadata = {

@@ -2,7 +2,7 @@ import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 dotenv.config();
 
-const email = process.env.NODEMAILER_EMAIL || "akkilalagar05@gmail.com";
+const email = process.env.NODEMAILER_EMAIL;
 const password = process.env.NODEMAILER_PASSWORD;
 
 const transporter = nodemailer.createTransport({
