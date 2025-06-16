@@ -9,10 +9,6 @@ const teachersSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  email: {
-    type: String,
-    default: "",
-  },
   prefix: {
     type: String,
     required: true,

@@ -65,6 +65,25 @@ draftRouter.post('/',
   }
 );
 
+
+draftRouter.get('/', async (req, res) => {
+  try {
+    const drafts = await Draft.find({}, 'name creationDate consolidatedFileName loadFileName records faculty');
+    const summary = drafts.map(d => ({
+      _id: d._id,
+      name: d.name,
+      creationDate: d.creationDate,
+      consolidatedFileName: d.consolidatedFileName,
+      loadFileName: d.loadFileName,
+      recordCount: d.records.length,
+      facultyCount: d.faculty.length, 
+    }));
+    res.status(200).json(summary);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch drafts' });
+  }
+});
+
 export default draftRouter;
 
 

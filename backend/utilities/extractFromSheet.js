@@ -1,13 +1,15 @@
 import XLSX from "xlsx";
 
-function isValidNumber(value) {
-  if (typeof(value) == "number"){
-    return true;
+function parseCleanNumber(value) {
+  if (typeof value === "number") {
+    return value;
   }
   if (typeof value === "string") {
-    return /^[0-9]+$/.test(value.trim());
+    const noSpaces = value.replace(/\s+/g, "");
+    if (noSpaces === "") return 0;
+    if (/^[0-9]+$/.test(noSpaces)) return parseInt(noSpaces, 10);
   }
-  return false;
+  return null;
 }
 
 function sanitizeRow(row) {
@@ -30,9 +32,14 @@ function extractRecords(filePath) {
     if (!row["S.No"] || !row["Course code"] || !row["Course title"]) {
       return null;
     }
-    if (!isValidNumber(row["No of FN Slot"]) || !isValidNumber(row["No of AN Slot"])){
+
+    const fn = parseCleanNumber(row["No of FN Slot"]);
+    const an = parseCleanNumber(row["No of AN Slot"]);
+
+    if (fn == null || an == null){
       return null;
     }
+
 
     return {
       sNo: parseInt(row["S.No"]),
@@ -40,13 +47,12 @@ function extractRecords(filePath) {
       stream: row["Stream"],
       courseCode: row["Course code"] || "",
       courseTitle: row["Course title"],
-      numOfForenoonSlots: parseInt(row["No of FN Slot"] || "0"),
-      numOfAfternoonSlots: parseInt(row["No of AN Slot"] || "0"),
+      numOfForenoonSlots: fn,
+      numOfAfternoonSlots: an,
       L: parseInt(row["L"] || "0"),
       T: parseInt(row["T"] || "0"),
       P: parseInt(row["P"] || "0"),
-      J: parseInt(row["J"] || "0"),
-      C: parseInt(row["C"] || "0"),
+      C: row["C"] || "0",
       courseHandlingSchool: row["Course Handling School"] || "",
     }
   })

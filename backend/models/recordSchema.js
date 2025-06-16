@@ -52,15 +52,10 @@ const recordSchema = new mongoose.Schema({
     required: true,
     default: 0,
   },
-  J: {
-    type: Number,
-    required: true,
-    default: 0,
-  },
   C: {
-    type: Number,
+    type: String,
     required: true,
-    default: 0,
+    default: "0",
   },
   courseHandlingSchool: {
     type: String,
