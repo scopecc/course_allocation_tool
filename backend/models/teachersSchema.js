@@ -11,19 +11,12 @@ const teachersSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: true,
-    unique: true,
     default: "",
   },
   prefix: {
     type: String,
     required: true,
     enum: ["Mr.", "Mrs.", "Ms.", "Prof.", "Dr.", ""],
-    default: "",
-  },
-  designation: {
-    type: String,
-    required: true,
     default: "",
   },
   loadL: {
@@ -56,16 +49,7 @@ const teachersSchema = new mongoose.Schema({
     required: true,
     default: 0,
   },
-  role: {
-    type: String,
-    required: true,
-    enum: ["teacher", "admin"],
-    default: "teacher",
-  },
-  otp: {
-    type: Number,
-    required: false,
-  },
 });
 
-export const Teachers = mongoose.model("Teachers", teachersSchema);
+// export const Teachers = mongoose.model("Teachers", teachersSchema);
+export default teachersSchema;

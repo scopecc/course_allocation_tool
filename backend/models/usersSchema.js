@@ -7,6 +7,7 @@ const usersSchema = new mongoose.Schema({
 	},
   employeeId: {
     type: String,
+    unique: true,
     required: true,
   },
   email: {

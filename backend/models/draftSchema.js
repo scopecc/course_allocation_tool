@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import recordSchema from "./recordSchema.js";
+import teachersSchema from "./teachersSchema.js";
 
 const draftSchema = new mongoose.Schema({
   name: {
@@ -10,18 +12,28 @@ const draftSchema = new mongoose.Schema({
     required: true,
     default: Date.now,
   },
-  fileNameConsolidated: {
+  consolidatedFileName: {
     type: String,
+    required: true,
   },
-  filePathConsolidated: {
+  consolidatedFilePath: {
     type: String,
+    required: true,
   },
-  fileNameLoad: {
+  loadFileName: {
     type: String,
+    required: true,
   },
-  filePathLoad: {
+  loadFilePath: {
     type: String,
-  }
-})
+    required: true,
+  },
+  records: {
+    type: [recordSchema],
+  },
+  faculty: {
+    type: [teachersSchema],
+  },
+});
 
-export const Drafts = mongoose.model("Drafts", draftSchema);
+export const Draft = mongoose.model("Draft", draftSchema);
