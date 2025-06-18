@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui";
 import React, { useState, useEffect } from "react";
-import DraftsTable from "@/components/draftsTable";
+import { DraftsTable } from "@/components";
 import { Card } from "@/components/ui";
 import { toast } from "sonner";
 import axios, { AxiosResponse } from "axios";
@@ -17,7 +17,7 @@ const Dashboard = () => {
   const fetchDrafts = async () => {
     try {
       setLoading(true);
-      const response: AxiosResponse<Draft[]> = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/draft`);
+      const response: AxiosResponse<Draft[]> = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/draft`, { withCredentials: true });
       setDrafts(response.data);
       console.log("Axios Response: ", response);
     }

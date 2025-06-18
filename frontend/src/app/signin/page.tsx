@@ -78,12 +78,13 @@ const SignInPage = () => {
     try {
       const response: AxiosResponse<VerifyOtpResponse> = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/auth/verify-otp`,
-        payload
+        payload,
+        {
+          withCredentials: true,
+        }
       );
       if (response.data.status === "success") {
         toast.success(response.data.message);
-        console.log("Token: ", response.data);
-        localStorage.setItem("token", response.data.token!);
         localStorage.setItem("user", JSON.stringify(response.data.message));
         router.push("/dashboard");
       } else {

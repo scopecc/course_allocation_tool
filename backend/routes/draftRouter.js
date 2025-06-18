@@ -1,6 +1,7 @@
 import { Router } from "express";
 import upload from "../utilities/saveToStorage.js";
 import { draftControllers } from "../controllers/index.js";
+import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const draftRouter = Router();
 
@@ -9,12 +10,13 @@ draftRouter.post('/',
     { name: "consolidatedFile", maxCount: 1 },
     { name: "loadFile", maxCount: 1 },
   ]),
+  authMiddleware,
   draftControllers.createDraft 
 );
 
-draftRouter.get('/', draftControllers.getAllDrafts);
+draftRouter.get('/', authMiddleware, draftControllers.getAllDrafts);
 
-draftRouter.get('/:id', draftControllers.getDraftFromId);
+draftRouter.get('/:id', authMiddleware, draftControllers.getDraftFromId);
 
 export default draftRouter;
 

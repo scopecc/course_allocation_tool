@@ -18,13 +18,6 @@ import Link from "next/link";
 import { ModeToggle } from "@/components/mode-toggle";
 
 const AuthorizedLayout = ({ children }: { children: ReactNode }) => {
-  const router = useRouter();
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/signin");
-    }
-  }, []);
 
   return (
     <div className="flex flex-col items-center h-screen w-screen">
