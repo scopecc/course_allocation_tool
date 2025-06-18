@@ -1,3 +1,4 @@
 import authControllers from "./authControllers.js";
+import draftControllers from "./draftControllers.js";
 
-export { authControllers };
+export { authControllers, draftControllers };
