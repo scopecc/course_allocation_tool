@@ -27,7 +27,7 @@ const recordSchema = new mongoose.Schema({
     default: 0,
   },
   forenoonTeachers: {
-    type: [String],
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Faculty' }],
   },
   numOfAfternoonSlots: {
     type: Number,
@@ -35,7 +35,7 @@ const recordSchema = new mongoose.Schema({
     default: 0,
   },
   afternoonTeachers: {
-    type: [String],
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Faculty' }],
   },
   L: {
     type: Number,
@@ -61,6 +61,23 @@ const recordSchema = new mongoose.Schema({
     type: String,
     default: "SCOPE",
   },
+  theorySlot: {
+    type: String,
+    required: true,
+    default: ""
+  },
+  labSlots: {
+    type: [
+      {
+        teacher: { type: mongoose.Schema.Types.ObjectId, ref: 'Faculty' },
+        labSlot: String,
+      },
+    ],
+    required: function () {
+      return this.L > 0;
+    },
+    default: [],
+  }
 });
 
 // exporting as schema to embed in drafts

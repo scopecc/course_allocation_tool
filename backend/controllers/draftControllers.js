@@ -1,4 +1,3 @@
-import jwt from "jsonwebtoken";
 import { Draft } from "../models/draftSchema.js";
 import { extractRecords, extractFacultiesAndLoads } from "../utilities/extractFromSheet.js";
 

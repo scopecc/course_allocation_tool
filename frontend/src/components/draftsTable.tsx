@@ -1,4 +1,5 @@
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
+import Link from "next/link";
 import { Draft } from "@/types/draft";
 
 type DraftTableProps = {
@@ -31,12 +32,12 @@ export default function DraftsTable({ drafts }: DraftTableProps) {
             <TableCell>{draft.consolidatedFileName}</TableCell>
             <TableCell>{draft.loadFileName}</TableCell>
             <TableCell>
-              <a
-                href={`/drafts/${draft._id}`}
+              <Link
+                href={`/draft/${draft._id}`}
                 className="text-blue-600 hover:underline"
               >
-                View
-              </a>
+                Edit
+              </Link>
             </TableCell>
           </TableRow>
         ))}

@@ -1,3 +1,6 @@
+import { Record } from "./record";
+import { Faculty } from "./faculty";
+
 export interface Draft {
   _id: string;
   name: string;
@@ -6,4 +9,6 @@ export interface Draft {
   loadFileName: string;
   recordCount: number;
   facultyCount: number;
+  records: [Record];
+  faculty: [Faculty];
 }

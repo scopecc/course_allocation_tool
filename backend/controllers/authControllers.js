@@ -101,13 +101,13 @@ async function verifyOtp(req, res) {
     }
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       // set to 1h before deployment
-      expiresIn: "1h",
+      expiresIn: "48h",
     });
     res.cookie('auth_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'Lax',
-      maxAge: 60 * 60 * 1000, // one hour, for test
+      maxAge: 48 * 60 * 60 * 1000, // one hour, for test
       path: '/',
     });
     return res.status(200).json({
