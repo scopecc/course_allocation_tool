@@ -1,6 +1,8 @@
+import { SlotAssignment } from "./slotAssignment";
+
 export type TeacherSelections = {
   [recordId: string]: {
-    fn: string[];
-    an: string[];
+    fn: SlotAssignment[],
+    an: SlotAssignment[],
   };
 };

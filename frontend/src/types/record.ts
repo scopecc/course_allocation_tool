@@ -1,6 +1,6 @@
-import { LabSlot } from "./labSlot";
+import { SlotAssignment } from "./slotAssignment";
 
-export interface Record{
+export interface Record {
   _id: string;
   sNo: number;
   year: string;
@@ -8,13 +8,12 @@ export interface Record{
   courseCode: string;
   courseTitle: string;
   numOfForenoonSlots: number;
-  forenoonTeachers: string[];
+  forenoonTeachers: SlotAssignment[];
   numOfAfternoonSlots: number;
-  afternoonTeachers: string[];
+  afternoonTeachers: SlotAssignment[];
   L: number;
   T: number;
   P: number;
   C: string;
   courseHandlingSchool: string;
-  labSlots?: LabSlot[];
 }

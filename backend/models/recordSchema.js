@@ -1,4 +1,5 @@
 import mongoose from "mongoose"
+import slotAssignmentSchema from "./slotAssignmentSchema.js";
 
 const recordSchema = new mongoose.Schema({
   sNo: {
@@ -27,7 +28,7 @@ const recordSchema = new mongoose.Schema({
     default: 0,
   },
   forenoonTeachers: {
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Faculty' }],
+    type: [slotAssignmentSchema],
   },
   numOfAfternoonSlots: {
     type: Number,
@@ -35,7 +36,7 @@ const recordSchema = new mongoose.Schema({
     default: 0,
   },
   afternoonTeachers: {
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Faculty' }],
+    type: [slotAssignmentSchema],
   },
   L: {
     type: Number,
@@ -61,23 +62,6 @@ const recordSchema = new mongoose.Schema({
     type: String,
     default: "SCOPE",
   },
-  theorySlot: {
-    type: String,
-    required: true,
-    default: ""
-  },
-  labSlots: {
-    type: [
-      {
-        teacher: { type: mongoose.Schema.Types.ObjectId, ref: 'Faculty' },
-        labSlot: String,
-      },
-    ],
-    required: function () {
-      return this.L > 0;
-    },
-    default: [],
-  }
 });
 
 // exporting as schema to embed in drafts

@@ -5,7 +5,7 @@ import axios, { AxiosResponse } from "axios";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ComboBox from "./ComboBox";
 import { Input } from "@/components/ui/input";
 
@@ -28,7 +28,7 @@ const allFields: Field[] = [
   { key: "sNo", label: "S.No" },
   { key: "year", label: "Year" },
   { key: "stream", label: "Course" },
-  { key: "courseCode", label: "Course Code"},
+  { key: "courseCode", label: "Course Code" },
   { key: "courseTitle", label: "Course Title" },
   { key: "L", label: "L" },
   { key: "T", label: "T" },
@@ -46,6 +46,7 @@ export default function DraftView({ draftId }: DraftViewProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(15);  //  TODO: change this later to be editable
   const [availableTeachers, setAvailableTeachers] = useState<Faculty[] | undefined>(undefined);
+  const [updateCount, setUpdateCount] = useState(0);
 
 
   const fetchDraft = async () => {
@@ -87,14 +88,46 @@ export default function DraftView({ draftId }: DraftViewProps) {
       const initialSelections: typeof teacherSelections = {};
       draft?.records.forEach((rec) => {
         initialSelections[rec._id] = {
-          fn: rec.forenoonTeachers.length > 0 ? rec.forenoonTeachers : Array.from({ length: rec.numOfForenoonSlots }),
-          an: rec.afternoonTeachers.length > 0 ? rec.afternoonTeachers : Array.from({ length: rec.numOfAfternoonSlots }),
+          fn: rec.forenoonTeachers.length > 0
+            ? rec.forenoonTeachers
+            : Array.from({ length: rec.numOfForenoonSlots }).map(() => ({ teacher: "", theorySlot: "", labSlot: "" })),
+          an: rec.afternoonTeachers.length > 0
+            ? rec.afternoonTeachers
+            : Array.from({ length: rec.numOfAfternoonSlots }).map(() => ({ teacher: "", theorySlot: "", labSlot: "" })),
         };
       });
       setTeacherSelections(initialSelections);
       setAvailableTeachers(draft.faculty);
     }
   }, [draft])
+
+  const handleSlotChange = (
+    recordId: string,
+    slotType: "fn" | "an",
+    index: number,
+    field: "theorySlot" | "labSlot",
+    newValue: string
+  ) => {
+    setTeacherSelections((prev) => {
+      const prevRecord = prev[recordId];
+      if (!prevRecord) return prev;
+
+      const updatedSlot = [...prevRecord[slotType]];
+      const updatedAssignment = { ...updatedSlot[index], [field]: newValue };
+
+      updatedSlot[index] = updatedAssignment;
+
+      return {
+        ...prev,
+        [recordId]: {
+          ...prevRecord,
+          [slotType]: updatedSlot,
+        },
+      };
+    });
+    console.log('updated: ', newValue);
+    console.log(teacherSelections);
+  }
 
   const handleTeacherChange = (
     recordId: string,
@@ -103,11 +136,11 @@ export default function DraftView({ draftId }: DraftViewProps) {
     index: number,
     newTeacherId: string,
   ) => {
-    const oldTeacherId = teacherSelections?.[recordId]?.[slotType]?.[index];
+    const oldTeacherId = teacherSelections?.[recordId]?.[slotType]?.[index].teacher;
 
     setTeacherSelections((prev) => {
       const updated = [...prev[recordId][slotType]];
-      updated[index] = newTeacherId;
+      updated[index].teacher = newTeacherId;
 
       return {
         ...prev,
@@ -163,15 +196,14 @@ export default function DraftView({ draftId }: DraftViewProps) {
   ): Faculty[] {
     if (!availableTeachers) return [];
 
-    // TODO: ask if the same teacher can operate more than one slot of the same time period (FN)
-    const assignedTeacherIds = [
-      ...(teacherSelections[rec._id]?.[slotType] || []),
-    ].filter(Boolean);
+    const assignedTeacherIds = (teacherSelections[rec._id]?.[slotType] || [])
+      .map((assignment) => assignment.teacher)
+      .filter(Boolean);
 
     return availableTeachers
-      // .filter(
-      //   (teacher) => !assignedTeacherIds.includes(teacher._id)
-      // )
+      .filter(
+        (teacher) => !assignedTeacherIds.includes(teacher._id)
+      )
       .filter(
         (teacher) => teacher.loadT - teacher.loadedT > 0
       )
@@ -209,7 +241,7 @@ export default function DraftView({ draftId }: DraftViewProps) {
       </div>
 
       <div className="w-full">
-        <Table className="rounded-md border">
+        <Table className="rounded-md border rounded-sm">
           <TableHeader>
             <TableRow>
               {allFields.map((field) => visibleFields.includes(field.key) ? (<TableHead key={field.key}>{field.label}</TableHead>) : null)}
@@ -223,31 +255,46 @@ export default function DraftView({ draftId }: DraftViewProps) {
               <TableRow key={i}>
                 {allFields.map((field) =>
                   visibleFields.includes(field.key)
-                    ? (<TableCell key={field.key}> {rec[field.key]} </TableCell>)
+                    ? (<TableCell className="max-w-50 whitespace-normal" key={field.key}> {rec[field.key]} </TableCell>)
                     : null
                 )}
                 <TableCell>
-                  <Input type="text" placeholder="Enter Theory Slot" className="w-38"></Input>
+                  <Input
+                    key={i}
+                    type="text"
+                    defaultValue={teacherSelections[rec._id]?.fn[0]?.theorySlot || ""}
+                    placeholder="Enter Theory Slot"
+                    className="w-38"
+                    onBlur={(e) => handleSlotChange(rec._id, "fn", 0, "theorySlot", e.target.value)}
+                  />
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col my-5 gap-y-2">
                     {Array.from({ length: rec.numOfForenoonSlots }).map((_, k) => (
-                      <>
+                      <div key={k}>
                         <ComboBox
                           key={k}
                           options={filterTeachersAccordingToRecord(availableTeachers, rec, "fn")}
                           value={
-                            availableTeachers?.find((teacher) => (teacher._id == teacherSelections[rec._id]?.fn[k])) || null
+                            availableTeachers?.find((teacher) => (teacher._id == teacherSelections[rec._id]?.fn[k].teacher)) || null
                           }
                           onChange={(val) => handleTeacherChange(rec._id, rec.P, "fn", k, val)}
                           placeHolder="Select FN Teacher..."
                         />
 
                         {rec.P > 0 && teacherSelections[rec._id]?.fn[k] !== undefined ?
-                          (<Input key={k} type="text" placeholder="Enter Lab Slot" className="w-32 mb-3"></Input>)
+                          (<Input
+                            key={k}
+                            type="text"
+                            placeholder="Enter Lab Slot"
+                            defaultValue={teacherSelections[rec._id]?.fn[k]?.labSlot || ""}
+                            className="w-32 mb-3"
+                            onBlur={(e) => handleSlotChange(rec._id, "fn", k, "labSlot", e.target.value)}
+                          />
+                          )
                           : null
                         }
-                      </>
+                      </div>
                     ))}
 
                   </div>
@@ -261,14 +308,22 @@ export default function DraftView({ draftId }: DraftViewProps) {
                           key={k}
                           options={filterTeachersAccordingToRecord(availableTeachers, rec, "an")}
                           value={
-                            availableTeachers?.find((teacher) => (teacher._id == teacherSelections[rec._id]?.an[k])) || null
+                            availableTeachers?.find((teacher) => (teacher._id == teacherSelections[rec._id]?.an[k].teacher)) || null
                           }
                           onChange={(val) => handleTeacherChange(rec._id, rec.P, "an", k, val)}
                           placeHolder="Select AN Teacher..."
                         />
 
                         {rec.P > 0 && teacherSelections[rec._id]?.an[k] !== undefined ?
-                          (<Input key={k} type="text" placeholder="Enter Lab Slot" className="w-32"></Input>)
+                          (<Input
+                            key={k}
+                            type="text"
+                            defaultValue={teacherSelections[rec._id]?.an[k]?.labSlot || ""}
+                            placeholder="Enter Lab Slot"
+                            className="w-32"
+                            onBlur={(e) => handleSlotChange(rec._id, "an", k, "labSlot", e.target.value)}
+                          />
+                          )
                           : null
                         }
                       </>
@@ -292,6 +347,7 @@ export default function DraftView({ draftId }: DraftViewProps) {
             <Button
               key={i}
               variant={currentPage === i + 1 ? "default" : "outline"}
+              className="max-w-2"
               onClick={() => setCurrentPage(i + 1)}
             >
               {i + 1}
