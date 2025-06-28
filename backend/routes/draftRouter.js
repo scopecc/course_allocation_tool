@@ -11,12 +11,14 @@ draftRouter.post('/',
     { name: "loadFile", maxCount: 1 },
   ]),
   authMiddleware,
-  draftControllers.createDraft 
+  draftControllers.createDraft
 );
 
 draftRouter.get('/', authMiddleware, draftControllers.getAllDrafts);
 
 draftRouter.get('/:id', authMiddleware, draftControllers.getDraftFromId);
+
+draftRouter.delete('/:id', authMiddleware, draftControllers.deleteDraftById);
 
 export default draftRouter;
 

@@ -3,7 +3,6 @@ import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList, CommandI
 import { Button } from "@/components/ui/button";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useState } from "react";
-import { TeacherSelections } from "@/types/teacherSelection";
 import { cn } from "@/lib/utils"
 import { CommandSeparator } from "cmdk";
 import { Faculty } from "@/types/faculty";

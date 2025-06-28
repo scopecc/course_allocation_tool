@@ -64,8 +64,26 @@ async function getDraftFromId(req, res) {
   }
 };
 
+async function deleteDraftById(req, res) {
+  try {
+    const draft = await Draft.findById(req.params.id);
+    if (!draft) {
+      return res.status(404).json({ error: 'Draft not found! ' });
+    }
+
+    await draft.deleteOne();
+
+    return res.status(200).json({ message: 'Draft deleted successfully.' });
+  } catch (error) {
+    console.error('Error while deleting draft: ', error);
+    return res.status(500).json({ error: 'Server error while deleting draft.' });
+  }
+
+};
+
 export default {
   createDraft,
   getAllDrafts,
   getDraftFromId,
+  deleteDraftById,
 };

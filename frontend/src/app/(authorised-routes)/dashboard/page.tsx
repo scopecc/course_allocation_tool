@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import axios, { AxiosResponse } from "axios";
 import { Draft } from "@/types/draft";
 import { APIError } from "@/types/error";
+import CreateDraftModal from "@/components/CreateDraftModal";
+import { CreateDraftResponse } from "@/types/response";
 
 
 const Dashboard = () => {
@@ -33,22 +35,41 @@ const Dashboard = () => {
     fetchDrafts();
   }, []);
 
+
+  const handleCreateDraft = async (formData: FormData) => {
+    try {
+      const res: AxiosResponse<CreateDraftResponse> = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/draft`, formData, { withCredentials: true });
+      if (res.status === 201) {
+        toast.message('New draft created successfully.');
+        fetchDrafts();
+      } else {
+        toast.message(res.data.message);
+      }
+    } catch (error) {
+      console.log('Error while creating draft: ', error);
+      toast.message('Error: Failed to create draft.');
+    }
+  }
+
   return (
     <div className="flex flex-col items-center">
       <div className="flex flex-col items-center my-10">
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <p> View and manage your drafts here. </p>
-        <Button onClick={fetchDrafts} disabled={loading}>
-          {loading ? "Refreshing..." : "Refresh"}
-        </Button>
+        <div className="flex flex-row mt-4 gap-4">
+          <Button onClick={fetchDrafts} disabled={loading} variant="outline">
+            {loading ? "Refreshing..." : "Refresh"}
+          </Button>
+          <CreateDraftModal onSubmit={handleCreateDraft} />
+        </div>
       </div>
-      <Card className="rounded-2xl border shadow-sm overflow-hidden w-full max-w-6xl">
+      <Card className="rounded-2xl border shadow-sm overflow-hidden w-full max-w-6xl mt-0">
         {loading ? (
           <p className="p-4">Loading drafts...</p>
         ) : drafts.length === 0 ? (
           <p className="p-4">No drafts available.</p>
         ) : (
-          <DraftsTable drafts={drafts} />
+          <DraftsTable drafts={drafts} onDelete={fetchDrafts} />
         )}
       </Card>
     </div>

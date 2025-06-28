@@ -19,6 +19,5 @@ export interface VerifyOtpRequest {
 export interface VerifyOtpResponse {
   status: "success" | "error";
   message: string;
-  token?: string;
   error?: string;
 }

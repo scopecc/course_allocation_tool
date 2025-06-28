@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import axios, { AxiosResponse } from "axios";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ import { TeacherSelections } from "@/types/teacherSelection";
 import { Record } from "@/types/record";
 import { Faculty } from "@/types/faculty";
 import { FieldKey } from "@/types/recordFieldKey";
+import { ChevronsUpDown } from "lucide-react"; //TODO: add sorting
 
 interface DraftViewProps {
   draftId: string;
@@ -42,11 +43,12 @@ export default function DraftView({ draftId }: DraftViewProps) {
   const [draft, setDraft] = useState<Draft | null>(null);
   const [loading, setLoading] = useState(true);
   const [visibleFields, setVisibleFields] = useState<FieldKey[]>(allFields.map(f => f.key));
-  const [teacherSelections, setTeacherSelections] = useState<TeacherSelections>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(15);  //  TODO: change this later to be editable
   const [availableTeachers, setAvailableTeachers] = useState<Faculty[] | undefined>(undefined);
   const [updateCount, setUpdateCount] = useState(0);
+  const teacherSelectionsRef = useRef<TeacherSelections>({});
+  const teacherSelections = teacherSelectionsRef.current;
 
 
   const fetchDraft = async () => {
@@ -96,7 +98,8 @@ export default function DraftView({ draftId }: DraftViewProps) {
             : Array.from({ length: rec.numOfAfternoonSlots }).map(() => ({ teacher: "", theorySlot: "", labSlot: "" })),
         };
       });
-      setTeacherSelections(initialSelections);
+      teacherSelectionsRef.current = initialSelections;
+      setUpdateCount((prev) => prev + 1)
       setAvailableTeachers(draft.faculty);
     }
   }, [draft])
@@ -108,25 +111,22 @@ export default function DraftView({ draftId }: DraftViewProps) {
     field: "theorySlot" | "labSlot",
     newValue: string
   ) => {
-    setTeacherSelections((prev) => {
-      const prevRecord = prev[recordId];
-      if (!prevRecord) return prev;
+    const prevRecord = teacherSelections[recordId];
+    if (!prevRecord) return;
 
-      const updatedSlot = [...prevRecord[slotType]];
-      const updatedAssignment = { ...updatedSlot[index], [field]: newValue };
+    const updatedSlot = [...prevRecord[slotType]];
+    const updatedAssignment = { ...updatedSlot[index], [field]: newValue };
+    updatedSlot[index] = updatedAssignment;
 
-      updatedSlot[index] = updatedAssignment;
+    teacherSelections[recordId] = {
+      ...prevRecord,
+      [slotType]: updatedSlot,
+    };
 
-      return {
-        ...prev,
-        [recordId]: {
-          ...prevRecord,
-          [slotType]: updatedSlot,
-        },
-      };
-    });
+    //setUpdateCount((prev) => prev + 1);
+
     console.log('updated: ', newValue);
-    console.log(teacherSelections);
+    console.log('teacherSelectionn: ', teacherSelections);
   }
 
   const handleTeacherChange = (
@@ -136,21 +136,13 @@ export default function DraftView({ draftId }: DraftViewProps) {
     index: number,
     newTeacherId: string,
   ) => {
-    const oldTeacherId = teacherSelections?.[recordId]?.[slotType]?.[index].teacher;
+    const oldTeacherId = teacherSelections?.[recordId]?.[slotType]?.[index]?.teacher;
 
-    setTeacherSelections((prev) => {
-      const updated = [...prev[recordId][slotType]];
-      updated[index].teacher = newTeacherId;
+    if (teacherSelections[recordId]?.[slotType]?.[index]) {
+      teacherSelections[recordId][slotType][index].teacher = newTeacherId;
+    }
 
-      return {
-        ...prev,
-        [recordId]: {
-          ...prev[recordId],
-          [slotType]: updated,
-        },
-      };
-    });
-
+    setUpdateCount(prev => prev + 1)
 
     setAvailableTeachers((prev) => {
       if (!prev) return undefined;
@@ -269,9 +261,9 @@ export default function DraftView({ draftId }: DraftViewProps) {
                   />
                 </TableCell>
                 <TableCell>
-                  <div className="flex flex-col my-5 gap-y-2">
+                  <div className="flex flex-col gap-3">
                     {Array.from({ length: rec.numOfForenoonSlots }).map((_, k) => (
-                      <div key={k}>
+                      <div key={k} className="flex flex-col gap-y-2" >
                         <ComboBox
                           key={k}
                           options={filterTeachersAccordingToRecord(availableTeachers, rec, "fn")}
@@ -288,7 +280,7 @@ export default function DraftView({ draftId }: DraftViewProps) {
                             type="text"
                             placeholder="Enter Lab Slot"
                             defaultValue={teacherSelections[rec._id]?.fn[k]?.labSlot || ""}
-                            className="w-32 mb-3"
+                            className="w-50 mb-3"
                             onBlur={(e) => handleSlotChange(rec._id, "fn", k, "labSlot", e.target.value)}
                           />
                           )
@@ -303,7 +295,7 @@ export default function DraftView({ draftId }: DraftViewProps) {
                 <TableCell>
                   <div className="flex flex-col my-5 gap-y-2">
                     {Array.from({ length: rec.numOfAfternoonSlots }).map((_, k) => (
-                      <>
+                      <div key={k} className="flex flex-col gap-y-2" >
                         <ComboBox
                           key={k}
                           options={filterTeachersAccordingToRecord(availableTeachers, rec, "an")}
@@ -320,13 +312,13 @@ export default function DraftView({ draftId }: DraftViewProps) {
                             type="text"
                             defaultValue={teacherSelections[rec._id]?.an[k]?.labSlot || ""}
                             placeholder="Enter Lab Slot"
-                            className="w-32"
+                            className="w-50"
                             onBlur={(e) => handleSlotChange(rec._id, "an", k, "labSlot", e.target.value)}
                           />
                           )
                           : null
                         }
-                      </>
+                      </div>
                     ))}
                   </div>
                 </TableCell>
