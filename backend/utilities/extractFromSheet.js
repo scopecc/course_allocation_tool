@@ -36,7 +36,7 @@ function extractRecords(filePath) {
     const fn = parseCleanNumber(row["No of FN Slot"]);
     const an = parseCleanNumber(row["No of AN Slot"]);
 
-    if (fn == null || an == null){
+    if (fn == null || an == null) {
       return null;
     }
 
@@ -54,9 +54,11 @@ function extractRecords(filePath) {
       P: parseInt(row["P"] || "0"),
       C: row["C"] || "0",
       courseHandlingSchool: row["Course Handling School"] || "",
+      forenoonTeachers: [],
+      afternoonTeachers: [],
     }
   })
-  .filter((row) => row !== null);
+    .filter((row) => row !== null);
 
   return parsed;
 }
@@ -64,13 +66,13 @@ function extractRecords(filePath) {
 function extractFacultiesAndLoads(filepath) {
   const workbook = XLSX.readFile(filepath);
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  const json = XLSX.utils.sheet_to_json(sheet, { defval: "", raw: false  });
+  const json = XLSX.utils.sheet_to_json(sheet, { defval: "", raw: false });
 
   const parsed = json.map((row) => {
     row = sanitizeRow(row);
-    if (!row["Name of the Faculty"] || !row["Emp Id"]){
+    if (!row["Name of the Faculty"] || !row["Emp Id"]) {
       return null;
-    } 
+    }
 
     const load = row["Load"] || "";
     const parts = load.split("+");
@@ -94,7 +96,7 @@ function extractFacultiesAndLoads(filepath) {
       loadPhD,
     };
   })
-  .filter((row) => row !== null);
+    .filter((row) => row !== null);
 
   return parsed;
 }

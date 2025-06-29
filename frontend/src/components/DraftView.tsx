@@ -8,22 +8,21 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ComboBox from "./ComboBox";
 import { Input } from "@/components/ui/input";
+import ColumnSelector from "@/components/ColumnSelector";
+import { socket } from "@/lib/socket";
 
 import { Draft } from "@/types/draft";
 import { TeacherSelections } from "@/types/teacherSelection";
 import { Record } from "@/types/record";
 import { Faculty } from "@/types/faculty";
 import { FieldKey } from "@/types/recordFieldKey";
+import { Field } from "@/types/Field";
 import { ChevronsUpDown } from "lucide-react"; //TODO: add sorting
 
 interface DraftViewProps {
   draftId: string;
 }
 
-type Field = {
-  key: FieldKey;
-  label: string;
-};
 
 const allFields: Field[] = [
   { key: "sNo", label: "S.No" },
@@ -79,6 +78,34 @@ export default function DraftView({ draftId }: DraftViewProps) {
   }, [draft, rowsPerPage])
 
   useEffect(() => {
+    socket.emit("joinDraft", draftId);
+    console.log("Join draft request sent from client");
+
+    const handleSlotUpdate = ({ senderSocketId, senderDraftId, recordId, slotType, index, field, newSelection }) => {
+      if (senderSocketId === socket.id) return;
+      if (draftId === senderDraftId) {
+        handleSlotChange(recordId, slotType, index, field, newSelection);
+      }
+    };
+
+    const handleTeacherUpdate = ({ senderSocketId, senderDraftId, recordId, recordP, slotType, index, newTeacherId }) => {
+      if (senderSocketId === socket.id) return;
+      if (draftId === senderDraftId) {
+        handleTeacherChange(recordId, recordP, slotType, index, newTeacherId, false);
+      }
+    };
+
+    socket.on("slotUpdated", handleSlotUpdate);
+    socket.on("teacherUpdated", handleTeacherUpdate);
+
+    return () => {
+      socket.off("slotUpdated", handleSlotUpdate);
+      socket.off("teacherUpdated", handleTeacherUpdate);
+    };
+  }, [draftId])
+
+  useEffect(() => {
+
     const refreshPage = async () => {
       await fetchDraft();
     };
@@ -90,6 +117,7 @@ export default function DraftView({ draftId }: DraftViewProps) {
       const initialSelections: typeof teacherSelections = {};
       draft?.records.forEach((rec) => {
         initialSelections[rec._id] = {
+          // need to remove this redundant code later
           fn: rec.forenoonTeachers.length > 0
             ? rec.forenoonTeachers
             : Array.from({ length: rec.numOfForenoonSlots }).map(() => ({ teacher: "", theorySlot: "", labSlot: "" })),
@@ -109,21 +137,38 @@ export default function DraftView({ draftId }: DraftViewProps) {
     slotType: "fn" | "an",
     index: number,
     field: "theorySlot" | "labSlot",
-    newValue: string
+    newValue: string,
   ) => {
     const prevRecord = teacherSelections[recordId];
     if (!prevRecord) return;
 
     const updatedSlot = [...prevRecord[slotType]];
-    const updatedAssignment = { ...updatedSlot[index], [field]: newValue };
-    updatedSlot[index] = updatedAssignment;
+    if (field === "theorySlot") {       // for theory slots, update the theory slot for all the teachers
+      for (let i = 0; i < updatedSlot.length; i++) {
+        updatedSlot[i] = { ...updatedSlot[i], theorySlot: newValue };
+      }
+    } else if (field === "labSlot") {                            // for lab slots, update just the one teacher 
+      const updatedAssignment = { ...updatedSlot[index], labSlot: newValue };
+      updatedSlot[index] = updatedAssignment;
+      console.log(updatedSlot[index])
+    }
 
     teacherSelections[recordId] = {
       ...prevRecord,
       [slotType]: updatedSlot,
     };
 
-    //setUpdateCount((prev) => prev + 1);
+    // setUpdateCount((prev) => prev + 1);
+
+    socket.emit("slotUpdate", {
+      senderSocketId: socket.id,
+      senderDraftId: draftId,
+      recordId: recordId,
+      slotType: slotType,
+      index: index,
+      field: field,
+      newSelection: newValue,
+    });
 
     console.log('updated: ', newValue);
     console.log('teacherSelectionn: ', teacherSelections);
@@ -135,6 +180,7 @@ export default function DraftView({ draftId }: DraftViewProps) {
     slotType: "fn" | "an",
     index: number,
     newTeacherId: string,
+    updateRender: boolean,
   ) => {
     const oldTeacherId = teacherSelections?.[recordId]?.[slotType]?.[index]?.teacher;
 
@@ -142,8 +188,9 @@ export default function DraftView({ draftId }: DraftViewProps) {
       teacherSelections[recordId][slotType][index].teacher = newTeacherId;
     }
 
-    setUpdateCount(prev => prev + 1)
+    if (updateRender) setUpdateCount(prev => prev + 1);
 
+    // TODO: make available teachers useRef
     setAvailableTeachers((prev) => {
       if (!prev) return undefined;
 
@@ -151,8 +198,8 @@ export default function DraftView({ draftId }: DraftViewProps) {
         if (teacher._id === oldTeacherId) {
           return {
             ...teacher,
-            loadedT: teacher.loadedT - 1,
-            loadedL: recordP > 0 ? teacher.loadedL - 1 : teacher.loadedL,
+            loadedT: Math.max(0, teacher.loadedT - 1),
+            loadedL: recordP > 0 ? Math.max(0, teacher.loadedL - 1) : teacher.loadedL,
           }
         } else if (teacher._id === newTeacherId) {
           return {
@@ -166,6 +213,18 @@ export default function DraftView({ draftId }: DraftViewProps) {
       });
       return updatedTeachers;
     });
+
+    socket.emit('teacherUpdate', ({
+      senderSocketId: socket.id,
+      senderDraftId: draftId,
+      recordId: recordId,
+      recordP: recordP,
+      slotType: slotType,
+      index: index,
+      newTeacherId: newTeacherId
+    }));
+
+    console.log('teacher selections: ', teacherSelections);
 
   };
 
@@ -212,25 +271,11 @@ export default function DraftView({ draftId }: DraftViewProps) {
         <h1 className="text-3xl">Editing: </h1> <h1 className="text-4xl font-bold mb-2 "> {draft.name}</h1>
       </div>
 
-      <div className="mb-4 flex justify-end gap-x-4">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline">Select Columns</Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="max-h-80 overflow-auto">
-            {allFields.map((field) => (
-              <DropdownMenuCheckboxItem
-                key={field.key}
-                checked={visibleFields.includes(field.key)}
-                onCheckedChange={() => toggleField(field.key)}
-                onSelect={(e) => e.preventDefault()}
-              >
-                {field.label}
-              </DropdownMenuCheckboxItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+      <ColumnSelector
+        allFields={allFields}
+        visibleFields={visibleFields}
+        toggleField={toggleField}
+      />
 
       <div className="w-full">
         <Table className="rounded-md border rounded-sm">
@@ -265,18 +310,16 @@ export default function DraftView({ draftId }: DraftViewProps) {
                     {Array.from({ length: rec.numOfForenoonSlots }).map((_, k) => (
                       <div key={k} className="flex flex-col gap-y-2" >
                         <ComboBox
-                          key={k}
                           options={filterTeachersAccordingToRecord(availableTeachers, rec, "fn")}
                           value={
                             availableTeachers?.find((teacher) => (teacher._id == teacherSelections[rec._id]?.fn[k].teacher)) || null
                           }
-                          onChange={(val) => handleTeacherChange(rec._id, rec.P, "fn", k, val)}
+                          onChange={(val) => handleTeacherChange(rec._id, rec.P, "fn", k, val, false)}
                           placeHolder="Select FN Teacher..."
                         />
 
                         {rec.P > 0 && teacherSelections[rec._id]?.fn[k] !== undefined ?
                           (<Input
-                            key={k}
                             type="text"
                             placeholder="Enter Lab Slot"
                             defaultValue={teacherSelections[rec._id]?.fn[k]?.labSlot || ""}
@@ -297,18 +340,16 @@ export default function DraftView({ draftId }: DraftViewProps) {
                     {Array.from({ length: rec.numOfAfternoonSlots }).map((_, k) => (
                       <div key={k} className="flex flex-col gap-y-2" >
                         <ComboBox
-                          key={k}
                           options={filterTeachersAccordingToRecord(availableTeachers, rec, "an")}
                           value={
                             availableTeachers?.find((teacher) => (teacher._id == teacherSelections[rec._id]?.an[k].teacher)) || null
                           }
-                          onChange={(val) => handleTeacherChange(rec._id, rec.P, "an", k, val)}
+                          onChange={(val) => handleTeacherChange(rec._id, rec.P, "an", k, val, true)}
                           placeHolder="Select AN Teacher..."
                         />
 
                         {rec.P > 0 && teacherSelections[rec._id]?.an[k] !== undefined ?
                           (<Input
-                            key={k}
                             type="text"
                             defaultValue={teacherSelections[rec._id]?.an[k]?.labSlot || ""}
                             placeholder="Enter Lab Slot"

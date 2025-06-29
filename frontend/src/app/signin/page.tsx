@@ -49,7 +49,10 @@ const SignInPage = () => {
         `${process.env.NEXT_PUBLIC_API_URL}/auth/signin`,
         data
       );
+
+      // TODO: REMOVE FOR PROD
       console.log("Sign In Response: ", response.data);
+
       if (response.data.status === "success") {
         setIsVerified(true);
         setEmployeeId(response.data.employeeId || data.employeeId || "");
@@ -90,8 +93,8 @@ const SignInPage = () => {
       } else {
         toast.error(
           response.data.message ||
-            response.data.error ||
-            "OTP verification failed"
+          response.data.error ||
+          "OTP verification failed"
         );
       }
     } catch (error) {

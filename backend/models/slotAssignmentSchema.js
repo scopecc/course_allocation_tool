@@ -4,11 +4,10 @@ const slotAssignmentSchema = new mongoose.Schema({
   teacher: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Teacher",
-    required: true,
+    default: null,
   },
   theorySlot: {
     type: String,
-    required: true,
   },
   labSlot: {
     type: String,

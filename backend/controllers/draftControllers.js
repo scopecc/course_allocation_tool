@@ -14,7 +14,22 @@ async function createDraft(req, res) {
     }
 
     const faculty = extractFacultiesAndLoads(loadFile.path).filter((row) => row !== null);
-    const records = extractRecords(consolidatedFile.path).filter((row) => row !== null);
+    const records = extractRecords(consolidatedFile.path)
+      .filter((row) => row !== null)
+      .map((record) => ({
+        ...record,
+        forenoonTeachers: Array.from({ length: record.numOfForenoonSlots }, () => ({
+          teacher: null,
+          theorySlot: "",
+          labSlot: "",
+        })),
+        afternoonTeachers: Array.from({ length: record.numOfAfternoonSlots }, () => ({
+          teacher: null,
+          theorySlot: "",
+          labSlot: "",
+        })),
+      }));
+
     const newDraft = new Draft({
       name,
       consolidatedFileName: consolidatedFile.originalname,
