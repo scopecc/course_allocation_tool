@@ -7,19 +7,19 @@ import { toast } from "sonner";
 import { Button } from "./ui";
 import { DeleteDraftResponse } from "@/types/response";
 import { useRouter } from "next/navigation";
-import { Eye, Pencil, Trash } from "lucide-react";
+import { Eye, Pencil } from "lucide-react";
+import { DeleteDialogModal } from "./DeleteDialogModal";
 
-type DraftTableProps = {
+type DraftsTableProps = {
   drafts: Draft[];
   onDelete: () => void;
 }
 
-export default function DraftsTable({ drafts, onDelete }: DraftTableProps) {
+export default function DraftsTable({ drafts, onDelete }: DraftsTableProps) {
   const router = useRouter();
 
   const handleDelete = async (draftId: string) => {
     try {
-      alert('Do you want to delete this draft ?');
       const res: AxiosResponse<DeleteDraftResponse> = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/draft/${draftId}`, { withCredentials: true });
       if (res.status === 200) {
         toast.success(res.data.message);
@@ -72,13 +72,7 @@ export default function DraftsTable({ drafts, onDelete }: DraftTableProps) {
                 >
                   <Pencil size={16} className="hover:scale-110 transition-transform cursor-pointer" />
                 </Button>
-                <Button
-                  variant="link"
-                  size="sm"
-                  onClick={() => handleDelete(draft._id)}
-                >
-                  <Trash size={16} className="hover:scale-110 transition-transform cursor-pointer" />
-                </Button>
+                <DeleteDialogModal onDelete={() => handleDelete(draft._id)} />
               </div>
             </TableCell>
           </TableRow>

@@ -3,7 +3,7 @@ import { NextResponse, NextRequest } from "next/server";
 
 const JWT_SECRET_STRING = process.env.JWT_SECRET;
 
-let JWT_SECRET_KEY : Uint8Array;
+let JWT_SECRET_KEY: Uint8Array;
 
 if (JWT_SECRET_STRING) {
   JWT_SECRET_KEY = new TextEncoder().encode(JWT_SECRET_STRING);
@@ -23,7 +23,7 @@ export async function middleware(request: NextRequest) {
       console.error('No Token');
       return NextResponse.redirect(new URL('/signin', request.url));
     }
-    
+
     try {
       await jwtVerify(token, JWT_SECRET_KEY);
     } catch (error) {

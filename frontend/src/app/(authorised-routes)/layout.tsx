@@ -1,6 +1,6 @@
 "use client";
 
-import React, { ReactNode, useEffect } from "react";
+import React, { ReactNode } from "react";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -16,27 +16,32 @@ const AuthorizedLayout = ({ children }: { children: ReactNode }) => {
 
   return (
     <div className="flex flex-col items-center h-screen w-screen">
-      <nav className="w-full">
-        <NavigationMenu className="mx-2">
-          <NavigationMenuList  className="flex justify-center gap-2 my-2">
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                <Link href="/dashboard">Dashboard</Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                <Link href="/export">Export</Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                <Link href="/about">About</Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu>
-      </nav>
+      <div className="flex flex-row w-screen place-content-around">
+        <nav className="w-full">
+          <NavigationMenu className="mx-2">
+            <NavigationMenuList className="flex justify-center gap-2 my-2">
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                  <Link href="/dashboard">Dashboard</Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                  <Link href="/export">Export</Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                  <Link href="/about">About</Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
+        </nav>
+        <div>
+          {/* TODO: add username modal here */}
+        </div>
+      </div>
       <section className="w-full px-4">
         {children}
       </section>
