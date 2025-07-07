@@ -47,6 +47,7 @@ function extractRecords(filePath) {
       stream: row["Stream"],
       courseCode: row["Course code"] || "",
       courseTitle: row["Course title"],
+      courseType: row["Course Type"] || "",
       numOfForenoonSlots: fn,
       numOfAfternoonSlots: an,
       L: parseInt(row["L"] || "0"),

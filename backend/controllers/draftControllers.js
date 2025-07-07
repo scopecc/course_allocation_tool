@@ -1,5 +1,7 @@
 import { Draft } from "../models/draftSchema.js";
+import archiver from 'archiver';
 import { extractRecords, extractFacultiesAndLoads } from "../utilities/extractFromSheet.js";
+import { generateMainFile, generateAllocFile } from "../utilities/exportToSheet.js";
 
 async function createDraft(req, res) {
   try {
@@ -37,7 +39,9 @@ async function createDraft(req, res) {
       loadFileName: loadFile.originalname,
       loadFilePath: loadFile.path,
       records: records,
+      recordCount: records.length,
       faculty: faculty,
+      facultyCount: faculty.length,
     });
 
     const savedDraft = await newDraft.save();
@@ -73,7 +77,7 @@ async function getDraftFromId(req, res) {
     if (!draft) {
       return res.status(404).json({ error: 'Draft not found!' });
     }
-    return res.status(200).json(draft);
+    return res.status(200).json({ draft: draft });
   } catch (error) {
     res.status(500).json({ error: 'API Error: Failed to fetch draft' });
   }
@@ -96,9 +100,38 @@ async function deleteDraftById(req, res) {
 
 };
 
+async function exportSheets(req, res) {
+  const { selectedDept, mainFilename, allocationFilename } = req.body;
+  try {
+    const draftId = req.params.id;
+    const draft = await Draft.findById(draftId)
+      .populate('records.forenoonTeachers.teacher')
+      .populate('records.afternoonTeachers.teacher');
+
+    const mainFilePath = await generateMainFile(draftId, draft, selectedDept, mainFilename);
+    const allocFilePath = await generateAllocFile(draftId, draft, allocationFilename);
+
+    const archive = archiver('zip')
+
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename=${mainFilename}-export.zip`);
+
+    archive.pipe(res);
+    archive.file(mainFilePath, { name: `${mainFilename}.xlsx` });
+    archive.file(allocFilePath, { name: `${allocationFilename}.xlsx` });
+
+    archive.finalize();
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to generate files' });
+  }
+}
+
 export default {
   createDraft,
   getAllDrafts,
   getDraftFromId,
   deleteDraftById,
+  exportSheets,
 };

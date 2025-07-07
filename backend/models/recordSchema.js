@@ -18,6 +18,9 @@ const recordSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  courseType: {
+    type: String,
+  },
   courseTitle: {
     type: String,
     required: true,

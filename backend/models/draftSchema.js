@@ -34,6 +34,12 @@ const draftSchema = new mongoose.Schema({
   faculty: {
     type: [teachersSchema],
   },
+  facultyCount: {
+    type: Number,
+  },
+  recordCount: {
+    type: Number,
+  },
 });
 
 export const Draft = mongoose.model("Draft", draftSchema);

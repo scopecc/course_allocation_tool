@@ -16,6 +16,8 @@ draftRouter.post('/',
 
 draftRouter.get('/', authMiddleware, draftControllers.getAllDrafts);
 
+draftRouter.post('/export/:id', draftControllers.exportSheets);
+
 draftRouter.get('/:id', authMiddleware, draftControllers.getDraftFromId);
 
 draftRouter.delete('/:id', authMiddleware, draftControllers.deleteDraftById);

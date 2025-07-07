@@ -7,8 +7,9 @@ import { toast } from "sonner";
 import { Button } from "./ui";
 import { DeleteDraftResponse } from "@/types/response";
 import { useRouter } from "next/navigation";
-import { Eye, Pencil } from "lucide-react";
+import { ArrowRight, Download, Eye, Pencil } from "lucide-react";
 import { DeleteDialogModal } from "./DeleteDialogModal";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 type DraftsTableProps = {
   drafts: Draft[];
@@ -33,6 +34,14 @@ export default function DraftsTable({ drafts, onDelete }: DraftsTableProps) {
     }
   }
 
+  function handleExport(draftId: string): void {
+    router.push(`/export/${draftId}`);
+  }
+
+  function handleEdit(draftId: string): void {
+    router.push(`/draft/${draftId}`)
+  }
+
   return (
     <Table>
       <TableHeader>
@@ -40,11 +49,11 @@ export default function DraftsTable({ drafts, onDelete }: DraftsTableProps) {
           <TableHead className="w-[50px]">#</TableHead>
           <TableHead>Name</TableHead>
           <TableHead>Date Created</TableHead>
-          <TableHead># Courses</TableHead>
-          <TableHead># Faculty</TableHead>
+          <TableHead>Courses</TableHead>
+          <TableHead>Faculty</TableHead>
           <TableHead>Consolidated Filename</TableHead>
           <TableHead>Faculty Filename</TableHead>
-          <TableHead>Actions</TableHead>
+          <TableHead className="pl-5">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -59,20 +68,51 @@ export default function DraftsTable({ drafts, onDelete }: DraftsTableProps) {
             <TableCell>{draft.loadFileName}</TableCell>
             <TableCell>
               <div className="flex flex-row ">
-                <Button
-                  variant="link"
-                  size="sm"
-                >
-                  <Eye size={16} />
-                </Button>
-                <Button
-                  onClick={() => router.push(`/draft/${draft._id}`)}
-                  size="sm"
-                  variant="link"
-                >
-                  <Pencil size={16} className="hover:scale-110 transition-transform cursor-pointer" />
-                </Button>
-                <DeleteDialogModal onDelete={() => handleDelete(draft._id)} />
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Button
+                      variant="link"
+                      size="sm"
+                    >
+                      <Eye size={16} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent> View </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Button
+                      onClick={() => handleEdit(draft._id)}
+                      size="sm"
+                      variant="link"
+                    >
+                      <Pencil size={16} className="hover:scale-110 transition-transform cursor-pointer" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent> Edit </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger>
+                    <DeleteDialogModal onDelete={() => handleDelete(draft._id)} />
+                  </TooltipTrigger>
+                  <TooltipContent> Delete </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Button
+                      size="sm"
+                      variant="link"
+                      onClick={() => handleExport(draft._id)}
+                    >
+                      <Download />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent> Export </TooltipContent>
+                </Tooltip>
+
               </div>
             </TableCell>
           </TableRow>

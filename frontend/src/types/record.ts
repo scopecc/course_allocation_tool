@@ -6,6 +6,7 @@ export interface Record {
   year: string;
   stream: string;
   courseCode: string;
+  courseType: string;
   courseTitle: string;
   numOfForenoonSlots: number;
   forenoonTeachers: SlotAssignment[];
