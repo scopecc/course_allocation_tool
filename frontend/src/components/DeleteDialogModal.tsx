@@ -20,7 +20,7 @@ export function DeleteDialogModal({ onDelete }: DeleteDialogModalProps) {
   return (
     <AlertDialog>
       <AlertDialogTrigger>
-        <Button variant="link" size="sm">
+        <Button variant="ghost" size="sm">
           <Trash size={16} className="hover:scale-110 text-red-600 transition-transform" />
         </Button>
       </AlertDialogTrigger>

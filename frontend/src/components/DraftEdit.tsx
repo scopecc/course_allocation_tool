@@ -271,6 +271,9 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
 
   async function setDraftName(newName: string): Promise<void> {
     setEditingName(false);
+    if (newName === draft?.name) {
+      return;
+    }
     try {
       const res: AxiosResponse<GetDraftResponse> = await axios.patch(`${process.env.NEXT_PUBLIC_API_URL}/draft/${draftId}`, {
         name: newName,
@@ -294,23 +297,24 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
     <div className="flex flex-col items-center my-2">
 
       <div className="flex flex-row gap-x-4 my-2">
-        <h1 className="text-3xl">Editing: </h1>
         {
           editingName ?
             (
               <Input
                 defaultValue={draft.name}
                 ref={draftNameRef}
+                placeholder="Edit Draft Name"
                 onBlur={() => {
                   const newValue = draftNameRef.current?.value || draft.name;
                   setDraftName(newValue);
                 }}
-                className="text-7xl font-bold px-0 h-auto mb-2 border-none shadow-none focus-visible:ring-0 focus-visible:outline-none"
+                size={10}
+                className="sm:text-4xl md:text-4xl font-bold px-3 py-6 max-h-30 mb-2 border-none shadow-none focus-visible:ring-0 focus-visible:outline-none"
               />
             ) : (
-              <div className="flex flex-row">
+              <div className="flex flex-row gap-x-2">
                 <h1 className="text-4xl font-bold mb-2 "> {draft.name}</h1>
-                <Button variant='ghost' size='sm' onClick={() => setEditingName((prev) => !prev)}><Edit size={8} /></Button>
+                <Button variant='ghost' size='sm' onClick={() => setEditingName((prev) => !prev)}><Edit /></Button>
               </div>
             )
         }
@@ -389,7 +393,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
                           value={
                             availableTeachers?.find((teacher) => (teacher._id == teacherSelections[rec._id]?.an[k].teacher)) || null
                           }
-                          onChange={(val) => handleTeacherChange(rec._id, rec.P, "an", k, val, true)}
+                          onChange={(val) => handleTeacherChange(rec._id, rec.P, "an", k, val, false)}
                           placeHolder="Select AN Teacher..."
                         />
 

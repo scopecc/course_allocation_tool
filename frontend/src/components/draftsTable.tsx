@@ -67,18 +67,32 @@ export default function DraftsTable({ drafts, onDelete }: DraftsTableProps) {
             <TableCell>{draft.consolidatedFileName}</TableCell>
             <TableCell>{draft.loadFileName}</TableCell>
             <TableCell>
-              <div className="flex flex-row ">
+              <div className="flex flex-row gap-x-1">
                 <Tooltip>
                   <TooltipTrigger>
                     <Button
                       onClick={() => handleEdit(draft._id)}
                       size="sm"
-                      variant="link"
+                      variant="ghost"
                     >
                       <Pencil size={16} className="hover:scale-110 transition-transform cursor-pointer" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent> Edit </TooltipContent>
+                </Tooltip>
+
+
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleExport(draft._id)}
+                    >
+                      <Download />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent> Export </TooltipContent>
                 </Tooltip>
 
                 <Tooltip>
@@ -88,18 +102,6 @@ export default function DraftsTable({ drafts, onDelete }: DraftsTableProps) {
                   <TooltipContent> Delete </TooltipContent>
                 </Tooltip>
 
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Button
-                      size="sm"
-                      variant="link"
-                      onClick={() => handleExport(draft._id)}
-                    >
-                      <Download />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent> Export </TooltipContent>
-                </Tooltip>
 
               </div>
             </TableCell>
