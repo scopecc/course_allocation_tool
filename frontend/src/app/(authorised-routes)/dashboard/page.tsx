@@ -54,7 +54,7 @@ const Dashboard = () => {
   return (
     <div className="flex flex-col items-center">
       <div className="flex flex-col items-center my-10">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <h1 className="text-4xl font-bold">Dashboard</h1>
         <p> View and manage your drafts here. </p>
         <div className="flex flex-row mt-4 gap-4">
           <Button onClick={fetchDrafts} disabled={loading} variant="outline">
@@ -63,7 +63,7 @@ const Dashboard = () => {
           <CreateDraftModal onSubmit={handleCreateDraft} />
         </div>
       </div>
-      <Card className="rounded-2xl border shadow-sm overflow-hidden w-full max-w-6xl mt-0">
+      <Card className="rounded-2xl border shadow-sm overflow-hidden w-full max-w-7xl mt-0">
         {loading ? (
           <p className="p-4">Loading drafts...</p>
         ) : drafts.length === 0 ? (

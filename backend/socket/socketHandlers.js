@@ -60,8 +60,7 @@ const socketHandlers = (io, socket) => {
       index,
       newTeacherId
     });
-
-  })
+  });
 
   socket.on("slotUpdate", async ({ senderSocketId, senderDraftId, recordId, slotType, index, field, newSelection }) => {
     console.log("slot updates received: ", newSelection);

@@ -1,4 +1,4 @@
-import { DraftView } from "@/components";
+import { DraftEdit } from "@/components";
 import React from "react";
 
 interface DraftPageProps {
@@ -9,5 +9,5 @@ interface DraftPageProps {
 
 export default async function DraftPage({ params }: DraftPageProps) {
   const { id } = await params;
-  return <DraftView draftId={id} />
+  return <DraftEdit draftId={id} />
 };

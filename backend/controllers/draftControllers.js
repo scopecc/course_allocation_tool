@@ -128,10 +128,37 @@ async function exportSheets(req, res) {
   }
 }
 
+async function updateDraftName(req, res) {
+  const { id } = req.params;
+  const { name } = req.body;
+
+  if (!name || typeof name !== 'string') {
+    return res.status(400).jsone({ error: 'Invalid or  missing draft name' });
+  }
+
+  try {
+    const updatedDraft = await Draft.findByIdAndUpdate(
+      id,
+      { name },
+      { new: true }
+    );
+
+    if (!updatedDraft) {
+      return res.status(404).json({ error: 'Draft not found.' });
+    }
+
+    return res.status(200).json({ message: 'Draft name updated successfully.', draft: updatedDraft });
+  } catch (error) {
+    console.error('Error updating draft name: ', error);
+    return res.status(500).json({ error: 'Server error while updating draft name' });
+  }
+}
+
 export default {
   createDraft,
   getAllDrafts,
   getDraftFromId,
   deleteDraftById,
   exportSheets,
+  updateDraftName
 };

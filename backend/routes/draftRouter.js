@@ -22,6 +22,8 @@ draftRouter.get('/:id', authMiddleware, draftControllers.getDraftFromId);
 
 draftRouter.delete('/:id', authMiddleware, draftControllers.deleteDraftById);
 
+draftRouter.patch('/:id', authMiddleware, draftControllers.updateDraftName);
+
 export default draftRouter;
 
 

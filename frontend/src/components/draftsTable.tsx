@@ -71,18 +71,6 @@ export default function DraftsTable({ drafts, onDelete }: DraftsTableProps) {
                 <Tooltip>
                   <TooltipTrigger>
                     <Button
-                      variant="link"
-                      size="sm"
-                    >
-                      <Eye size={16} />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent> View </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Button
                       onClick={() => handleEdit(draft._id)}
                       size="sm"
                       variant="link"

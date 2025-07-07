@@ -12,5 +12,6 @@ export interface CreateDraftResponse {
 
 export interface GetDraftResponse {
   draft: Draft;
+  message?: string;
   error?: string;
 }
