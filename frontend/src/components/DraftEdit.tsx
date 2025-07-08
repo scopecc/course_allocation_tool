@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import axios, { Axios, AxiosResponse } from "axios";
+import axios, { AxiosResponse } from "axios";
 import { GetDraftResponse } from "@/types/response";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -19,7 +19,8 @@ import { FieldKey } from "@/types/recordFieldKey";
 import { Field } from "@/types/Field";
 import { ChevronsUpDown, Edit } from "lucide-react"; //TODO: add sorting
 import { DraftViewProps } from "@/types/props";
-import { info } from "console";
+import { RowsPerPageDropdown } from "./RowsPerPageDropdown";
+import { PaginationBar } from "./PaginationBar";
 
 
 const allFields: Field[] = [
@@ -42,7 +43,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
   const [visibleFields, setVisibleFields] = useState<FieldKey[]>(allFields.map(f => f.key));
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(15);  //  TODO: change this later to be editable
-  const [availableTeachers, setAvailableTeachers] = useState<Faculty[] | undefined>(undefined);
+  const availableTeachersRef = useRef<Faculty[] | undefined>(undefined);
   const [updateCount, setUpdateCount] = useState(0);
   const [editingName, setEditingName] = useState(false);
   const teacherSelectionsRef = useRef<TeacherSelections>({});
@@ -81,6 +82,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
     return 0
   }, [draft, rowsPerPage])
 
+  // socket updates useEffect
   useEffect(() => {
     socket.emit("joinDraft", draftId);
     console.log("Join draft request sent from client");
@@ -122,6 +124,9 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
       const initialSelections: typeof teacherSelections = {};
       draft?.records.forEach((rec) => {
         initialSelections[rec._id] = {
+          // this is just to make sure the forenoon & afternoon teachers arrays
+          // arent empty or undefined.
+          // but the backend already does this so 
           // need to remove this redundant code later
           fn: rec.forenoonTeachers.length > 0
             ? rec.forenoonTeachers
@@ -133,7 +138,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
       });
       teacherSelectionsRef.current = initialSelections;
       setUpdateCount((prev) => prev + 1)
-      setAvailableTeachers(draft.faculty);
+      availableTeachersRef.current = draft.faculty;
     }
   }, [draft])
 
@@ -175,9 +180,8 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
       newSelection: newValue,
     });
 
-    console.log('updated: ', newValue);
-    console.log('teacherSelectionn: ', teacherSelections);
   }
+
 
   const handleTeacherChange = (
     recordId: string,
@@ -187,37 +191,34 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
     newTeacherId: string,
     updateRender: boolean,
   ) => {
-    const oldTeacherId = teacherSelections?.[recordId]?.[slotType]?.[index]?.teacher;
+    console.time("handleTeacherChange");
+    const recordSelections = teacherSelections[recordId]?.[slotType];
+    if (!recordSelections || !recordSelections[index]) return;
 
-    if (teacherSelections[recordId]?.[slotType]?.[index]) {
-      teacherSelections[recordId][slotType][index].teacher = newTeacherId;
-    }
+    const oldTeacherId = recordSelections[index].teacher;
+    if (oldTeacherId === newTeacherId) return;
+
+    recordSelections[index].teacher = newTeacherId;
 
     if (updateRender) setUpdateCount(prev => prev + 1);
 
-    // TODO: make available teachers useRef
-    setAvailableTeachers((prev) => {
-      if (!prev) return undefined;
+    // efficiently update teacher load counts
+    const teachersMap = new Map(availableTeachersRef.current?.map(t => [t._id, { ...t }]));
 
-      const updatedTeachers = prev.map((teacher) => {
-        if (teacher._id === oldTeacherId) {
-          return {
-            ...teacher,
-            loadedT: Math.max(0, teacher.loadedT - 1),
-            loadedL: recordP > 0 ? Math.max(0, teacher.loadedL - 1) : teacher.loadedL,
-          }
-        } else if (teacher._id === newTeacherId) {
-          return {
-            ...teacher,
-            loadedT: teacher.loadedT + 1,
-            loadedL: recordP > 0 ? teacher.loadedL + 1 : teacher.loadedL,
-          }
-        } else {
-          return teacher;
-        }
-      });
-      return updatedTeachers;
-    });
+    if (oldTeacherId && teachersMap.has(oldTeacherId)) {
+      const t = teachersMap.get(oldTeacherId)!;
+      t.loadedT = Math.max(0, t.loadedT - 1);
+      if (recordP > 0) t.loadedL = Math.max(0, t.loadedL - 1);
+    }
+
+    if (newTeacherId && teachersMap.has(newTeacherId)) {
+      const t = teachersMap.get(newTeacherId)!;
+      t.loadedT += 1;
+      if (recordP > 0) t.loadedL += 1;
+    }
+
+    availableTeachersRef.current = Array.from(teachersMap.values());
+
 
     socket.emit('teacherUpdate', ({
       senderSocketId: socket.id,
@@ -229,7 +230,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
       newTeacherId: newTeacherId
     }));
 
-    console.log('teacher selections: ', teacherSelections);
+    console.timeEnd("handleTeacherChange")
 
   };
 
@@ -250,11 +251,13 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
     rec: Record,
     slotType: "fn" | "an"
   ): Faculty[] {
+    console.time("filterTeachersAccordingToRecord");
     if (!availableTeachers) return [];
 
     const assignedTeacherIds = (teacherSelections[rec._id]?.[slotType] || [])
       .map((assignment) => assignment.teacher)
       .filter(Boolean);
+
 
     return availableTeachers
       .filter(
@@ -266,6 +269,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
       .filter(
         (teacher) => (rec.P > 0 ? teacher.loadL - teacher.loadedL > 0 : true)
       );
+
   }
 
 
@@ -359,11 +363,11 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
                     {Array.from({ length: rec.numOfForenoonSlots }).map((_, k) => (
                       <div key={k} className="flex flex-col gap-y-2" >
                         <ComboBox
-                          options={filterTeachersAccordingToRecord(availableTeachers, rec, "fn")}
+                          options={filterTeachersAccordingToRecord(availableTeachersRef.current, rec, "fn")}
                           value={
-                            availableTeachers?.find((teacher) => (teacher._id == teacherSelections[rec._id]?.fn[k].teacher)) || null
+                            availableTeachersRef.current?.find((teacher) => (teacher._id == teacherSelections[rec._id]?.fn[k].teacher)) || null
                           }
-                          onChange={(val) => handleTeacherChange(rec._id, rec.P, "fn", k, val, false)}
+                          onChange={(val) => handleTeacherChange(rec._id, rec.P, "fn", k, val, true)}
                           placeHolder="Select FN Teacher..."
                         />
 
@@ -389,11 +393,11 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
                     {Array.from({ length: rec.numOfAfternoonSlots }).map((_, k) => (
                       <div key={k} className="flex flex-col gap-y-2" >
                         <ComboBox
-                          options={filterTeachersAccordingToRecord(availableTeachers, rec, "an")}
+                          options={filterTeachersAccordingToRecord(availableTeachersRef.current, rec, "an")}
                           value={
-                            availableTeachers?.find((teacher) => (teacher._id == teacherSelections[rec._id]?.an[k].teacher)) || null
+                            availableTeachersRef.current?.find((teacher) => (teacher._id == teacherSelections[rec._id]?.an[k].teacher)) || null
                           }
-                          onChange={(val) => handleTeacherChange(rec._id, rec.P, "an", k, val, false)}
+                          onChange={(val) => handleTeacherChange(rec._id, rec.P, "an", k, val, true)}
                           placeHolder="Select AN Teacher..."
                         />
 
@@ -416,34 +420,14 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
             ))}
           </TableBody>
         </Table>
-        <div className="flex justify-center gap-2 mt-4">
-          <Button
-            variant="outline"
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((prev) => prev - 1)}
-          >
-            Previous
-          </Button>
-
-          {Array.from({ length: totalPages }, (_, i) => (
-            <Button
-              key={i}
-              variant={currentPage === i + 1 ? "default" : "outline"}
-              className="max-w-2"
-              onClick={() => setCurrentPage(i + 1)}
-            >
-              {i + 1}
-            </Button>
-          ))}
-
-          <Button
-            variant="outline"
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((prev) => prev + 1)}
-          >
-            Next
-          </Button>
-        </div>
+        <PaginationBar
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
+          totalPages={totalPages}
+          rowsPerPage={rowsPerPage}
+          setRowsPerPage={setRowsPerPage}
+          totalRecords={draft.recordCount}
+        />
       </div>
     </div >
   );
