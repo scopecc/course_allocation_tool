@@ -27,11 +27,6 @@ const AuthorizedLayout = ({ children }: { children: ReactNode }) => {
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                  <Link href="/export">Export</Link>
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
                   <Link href="/about">About</Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>

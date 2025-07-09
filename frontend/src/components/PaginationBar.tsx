@@ -31,10 +31,20 @@ export function PaginationBar({
 
   return (
     <div className="flex flex-wrap justify-center gap-2 mt-6 items-center my-2">
-      <div className="text-sm text-muted-foreground pr-4">
-        Page {currentPage} &nbsp; | &nbsp;
-        {(currentPage - 1) * rowsPerPage + 1} -{" "}
-        {Math.min(currentPage * rowsPerPage, totalRecords)} of {totalRecords}
+
+      {/* Go to page input */}
+      <div className="flex items-center gap-2 mr-4">
+        <span className="text-sm">Go to page:</span>
+        <Input
+          type="number"
+          className="w-16 h-8 text-sm"
+          value={gotoPage}
+          onChange={(e) => setGotoPage(e.target.value)}
+        />
+        / {totalPages}
+        <Button size="sm" onClick={handleGotoPage}>
+          Go
+        </Button>
       </div>
 
       {/* First Page */}
@@ -63,20 +73,12 @@ export function PaginationBar({
         <ChevronLeft />
       </Button>
 
-      {/* Go to page input */}
-      <div className="flex items-center gap-2">
-        <span className="text-sm">Go to page:</span>
-        <Input
-          type="number"
-          className="w-16 h-8 text-sm"
-          value={gotoPage}
-          onChange={(e) => setGotoPage(e.target.value)}
-        />
-        / {totalPages}
-        <Button size="sm" onClick={handleGotoPage}>
-          Go
-        </Button>
+      <div className="text-sm text-muted-foreground pr-4">
+        Page {currentPage} &nbsp; | &nbsp;
+        {(currentPage - 1) * rowsPerPage + 1} -{" "}
+        {Math.min(currentPage * rowsPerPage, totalRecords)} of {totalRecords}
       </div>
+
 
       {/* Next Page */}
       <Button

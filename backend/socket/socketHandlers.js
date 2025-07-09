@@ -3,12 +3,13 @@ import { Draft } from "../models/draftSchema.js";   // weird bug that doesnt rec
 const socketHandlers = (io, socket) => {
 
   socket.on("joinDraft", (draftId) => {
-    console.log(`New user joined ${draftId}`);
+    console.log(`New user joined draft ${draftId} with id ${socket.id}`);
     socket.join(draftId);
+    console.log(io.sockets.adapter.rooms.get(draftId));
   });
 
   socket.on("teacherUpdate", async ({ senderSocketId, senderDraftId, recordId, recordP, slotType, index, newTeacherId }) => {
-    console.log("teacher updates received: ", newTeacherId);
+    console.log("teacher updates received: ", newTeacherId, " from: ", senderSocketId);
     const draft = await Draft.findById(senderDraftId);
 
     if (!draft) {
@@ -23,10 +24,10 @@ const socketHandlers = (io, socket) => {
     let oldTeacherId = null;
 
     if (slotType === 'fn') {
-      const oldTeacherId = record.forenoonTeachers[index].teacher?.toString();
+      oldTeacherId = record.forenoonTeachers[index].teacher?.toString();
       record.forenoonTeachers[index].teacher = newTeacherId;
     } else if (slotType === 'an') {
-      const oldTeacherId = record.afternoonTeachers[index].teacher?.toString();
+      oldTeacherId = record.afternoonTeachers[index].teacher?.toString();
       record.afternoonTeachers[index].teacher = newTeacherId;
     }
 
@@ -109,7 +110,7 @@ const socketHandlers = (io, socket) => {
       slotType,
       index,
       field,
-      newSelection
+      newSelection,
     });
   });
 

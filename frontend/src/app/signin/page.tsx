@@ -50,8 +50,9 @@ const SignInPage = () => {
         data
       );
 
-      // TODO: REMOVE FOR PROD
-      console.log("Sign In Response: ", response.data);
+      if (process.env.ENV === 'development') {
+        console.log("Sign In Response: ", response.data);
+      }
 
       if (response.data.status === "success") {
         setIsVerified(true);

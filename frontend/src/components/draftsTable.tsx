@@ -61,7 +61,16 @@ export default function DraftsTable({ drafts, onDelete }: DraftsTableProps) {
           <TableRow key={draft._id}>
             <TableCell>{index + 1}</TableCell>
             <TableCell>{draft.name}</TableCell>
-            <TableCell>{new Date(draft.creationDate).toLocaleDateString()}</TableCell>
+            <TableCell>
+              <Tooltip>
+                <TooltipTrigger>
+                  {new Date(draft.creationDate).toLocaleDateString()}
+                </TooltipTrigger>
+                <TooltipContent>
+                  {new Date(draft.creationDate).toLocaleTimeString()}
+                </TooltipContent>
+              </Tooltip>
+            </TableCell>
             <TableCell>{draft.recordCount}</TableCell>
             <TableCell>{draft.facultyCount}</TableCell>
             <TableCell>{draft.consolidatedFileName}</TableCell>
