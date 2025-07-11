@@ -376,7 +376,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
           totalPages={totalPages}
           rowsPerPage={rowsPerPage}
           setRowsPerPage={setRowsPerPage}
-          totalRecords={draft.recordCount}
+          totalRecords={draft.recordCount ?? draft.records.length}
         />
       </div>
     </div >

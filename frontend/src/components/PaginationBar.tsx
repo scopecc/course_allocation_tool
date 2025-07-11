@@ -86,6 +86,10 @@ export function PaginationBar({
         onClick={() => {
           setCurrentPage((prev) => Math.min(prev + 1, totalPages));
           setGotoPage(String(currentPage));
+          console.log(Math.min(currentPage * rowsPerPage, totalRecords));
+          console.log('current page: ', currentPage);
+          console.log('rowsPerPage: ', rowsPerPage);
+          console.log('totarec: ', totalRecords);
           window.scrollTo({ top: 0, behavior: "smooth" });
         }}
         disabled={currentPage === totalPages}
