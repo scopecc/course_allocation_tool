@@ -91,14 +91,45 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
       socket.on("connect", () => socket.emit("joinDraft", draftId));
     }
 
-    const handleSlotUpdate = ({ senderSocketId, senderDraftId, recordId, slotType, index, field, newSelection }): void => {
+    const handleSlotUpdate = (
+      { senderSocketId,
+        senderDraftId,
+        recordId,
+        slotType,
+        index,
+        field,
+        newSelection
+      }: {
+        senderSocketId: string,
+        senderDraftId: string,
+        recordId: string,
+        slotType: "fn" | "an",
+        index: number,
+        field: "labSlot" | "theorySlot",
+        newSelection: string
+      }): void => {
       if (senderSocketId === socket.id) return;
       if (draftId === senderDraftId) {
         handleSlotChange(recordId, slotType, index, field, newSelection, true);
       }
     };
 
-    const handleTeacherUpdate = ({ senderSocketId, senderDraftId, recordId, recordP, slotType, index, newTeacherId }): void => {
+    const handleTeacherUpdate = ({
+      senderSocketId,
+      senderDraftId,
+      recordId,
+      recordP,
+      slotType,
+      index,
+      newTeacherId }: {
+        senderSocketId: string,
+        senderDraftId: string,
+        recordId: string,
+        recordP: number,
+        slotType: "fn" | "an",
+        index: number,
+        newTeacherId: string,
+      }): void => {
       if (senderSocketId === socket.id) return;
       if (draftId === senderDraftId) {
         handleTeacherChange(recordId, recordP, slotType, index, newTeacherId, true);
