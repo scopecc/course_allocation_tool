@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import ColumnSelector from "@/components/ColumnSelector";
 import { socket } from "@/lib/socket";
 
-import { Draft } from "@/types/draft";
+import { Draft } from "@/types/draft"
 import { TeacherSelections } from "@/types/teacherSelection";
 import { Record } from "@/types/record";
 import { Faculty } from "@/types/faculty";
@@ -20,6 +20,7 @@ import { ChevronsUpDown, Edit } from "lucide-react"; //TODO: add sorting
 import { DraftViewProps } from "@/types/props";
 import { PaginationBar } from "./PaginationBar";
 import DraftTableRow from "./DraftTableRow";
+import { DraftTableHeader } from "./DraftTableHeader";
 
 
 const allFields: Field[] = [
@@ -48,6 +49,12 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
   const draftNameRef = useRef<HTMLInputElement>(null);
   const teacherSelectionsRef = useRef(teacherSelections);
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterBy, setFilterBy] = useState<keyof Record | "all">("all");
+  const [filterValue, setFilterValue] = useState("");
+  const [sortBy, setSortBy] = useState<keyof Record>("courseTitle");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
   useEffect(() => {
     teacherSelectionsRef.current = teacherSelections;
   }, [teacherSelections]);
@@ -69,12 +76,40 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
     }
   };
 
+  // sort, filter, search records
+  const processedRecords = useMemo(() => {
+    let records: Record[] = draft?.records || [];
+
+    if (searchQuery.trim() !== "") {
+      const q = searchQuery.toLowerCase();
+      records = records.filter((record) =>
+        record.courseTitle.toLowerCase().includes(q) || record.courseCode.toString().includes(q)
+      );
+    }
+
+    if (sortBy) {
+      records = [...records].sort((a, b) => {
+        const aValue = a[sortBy];
+        const bValue = b[sortBy];
+
+        if (sortDirection === 'asc') {
+          return aValue > bValue ? 1 : -1;
+        } else {
+          return aValue < bValue ? 1 : -1;
+        }
+      });
+    }
+
+    return records;
+  }, [draft?.records, searchQuery, sortBy, sortDirection])
+
+  // paginate records
   const paginatedRecords = useMemo(() => {
-    return draft?.records.slice(
+    return processedRecords.slice(
       (currentPage - 1) * rowsPerPage,
       currentPage * rowsPerPage
     );
-  }, [draft?.records, currentPage, rowsPerPage]);
+  }, [draft?.records, currentPage, rowsPerPage, processedRecords]);
 
   const totalPages = useMemo(() => {
     if (draft) {
@@ -315,7 +350,12 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
         (teacher) => (rec.P > 0 ? teacher.loadL - teacher.loadedL > 0 : true)
       );
 
-  }
+  };
+
+  function handleSortChange(field: keyof Record, direction: 'asc' | 'desc') {
+    setSortBy(field);
+    setSortDirection(direction);
+  };
 
 
   async function setDraftName(newName: string): Promise<void> {
@@ -339,7 +379,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
       console.log('APIError: Could not change draft name: ', error);
       toast.error('Error: Could not update name.');
     }
-  }
+  };
 
   return (
 
@@ -378,12 +418,13 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
       <div className="w-full">
         <Table className="border rounded-sm">
           <TableHeader>
-            <TableRow>
-              {allFields.map((field) => visibleFields.includes(field.key) ? (<TableHead key={field.key}>{field.label}</TableHead>) : null)}
-              <TableCell>Slot</TableCell>
-              <TableCell>FN Teachers</TableCell>
-              <TableCell>AN Teachers</TableCell>
-            </TableRow>
+            <DraftTableHeader
+              allFields={allFields}
+              visibleFields={visibleFields}
+              sortBy={sortBy}
+              sortDirection={sortDirection}
+              onSortChange={handleSortChange}
+            />
           </TableHeader>
           <TableBody>
             {paginatedRecords?.map((rec) => (
