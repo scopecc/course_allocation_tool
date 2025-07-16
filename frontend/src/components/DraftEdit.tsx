@@ -124,10 +124,10 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
 
   const totalPages = useMemo(() => {
     if (draft) {
-      return Math.ceil(draft.records.length / rowsPerPage);
+      return Math.ceil(processedRecords.length / rowsPerPage);
     }
     return 0
-  }, [draft, rowsPerPage])
+  }, [draft, rowsPerPage, processedRecords])
 
   // socket updates useEffect
   useEffect(() => {
@@ -401,7 +401,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
   };
 
   return (
-    <div className="flex flex-col items-center my-2 mx-2 overflow-x-hidden">
+    <div className="flex flex-col items-center my-2 mx-2 w-full max-w-screen overflow-x-auto">
 
       <div className="flex flex-row gap-x-4 my-2">
         {
@@ -448,8 +448,8 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
 
       </div>
 
-      <div className="w-full">
-        <Table className="border rounded-sm">
+      <div className="w-full overflow-x-auto">
+        <Table className="border rounded-sm w-full">
           <TableHeader>
             <DraftTableHeader
               allFields={allFields}
@@ -481,7 +481,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
           totalPages={totalPages}
           rowsPerPage={rowsPerPage}
           setRowsPerPage={setRowsPerPage}
-          totalRecords={draft.recordCount ?? draft.records.length}
+          totalRecords={processedRecords.length}
         />
       </div>
     </div >

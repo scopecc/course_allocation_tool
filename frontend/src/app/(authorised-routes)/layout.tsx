@@ -15,8 +15,8 @@ import { ModeToggle } from "@/components/mode-toggle";
 const AuthorizedLayout = ({ children }: { children: ReactNode }) => {
 
   return (
-    <div className="flex flex-col items-center h-screen w-screen">
-      <div className="flex flex-row w-screen place-content-around">
+    <div className="flex flex-col items-center h-screen w-full">
+      <div className="flex flex-row w-full place-content-around">
         <nav className="w-full">
           <NavigationMenu className="mx-2">
             <NavigationMenuList className="flex justify-center gap-2 my-2">

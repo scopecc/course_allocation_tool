@@ -25,7 +25,7 @@ export default function ComboBox({ options, value, onChange, placeHolder }: Comb
         <Button
           variant="outline"
           role="combobox"
-          className="w-[200px] justify-between"
+          className="max-w-[200px] justify-between"
         >
           {displayName}
         </Button>

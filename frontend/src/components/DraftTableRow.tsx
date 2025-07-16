@@ -50,7 +50,7 @@ const DraftTableRow = React.memo(function DraftTableRow({
       {allFields.map((field) =>
         visibleFields.includes(field.key)
           ? (
-            <TableCell className="max-w-45 whitespace-normal" key={field.key}>
+            <TableCell className="max-w-[180px] whitespace-normal break-words" key={field.key}>
               {rec[field.key]}
             </TableCell>
           )
@@ -60,7 +60,7 @@ const DraftTableRow = React.memo(function DraftTableRow({
       <TableCell>
         <SlotInput
           value={teacherSelections[rec._id]?.fn[0]?.theorySlot || ""}
-          className="w-38"
+          className="max-w-36"
           placeholder="Enter Theory Slot"
           onCommit={(value) => handleSlotChange(rec._id, "fn", 0, "theorySlot", value, false)}
         />
@@ -86,7 +86,7 @@ const DraftTableRow = React.memo(function DraftTableRow({
               />
               {rec.P > 0 && teacherSelections[rec._id]?.fn[k] !== undefined ? (
                 <SlotInput
-                  className="max-w-50 mb-3"
+                  className="max-w-48 mb-3"
                   value={teacherSelections[rec._id]?.fn[k].labSlot || ""}
                   placeholder="Enter Lab Slot"
                   onCommit={(value) => handleSlotChange(rec._id, "fn", k, "labSlot", value, false)}
@@ -98,7 +98,7 @@ const DraftTableRow = React.memo(function DraftTableRow({
       </TableCell>
 
       <TableCell>
-        <div className="flex flex-col my-5 gap-y-2">
+        <div className="flex flex-col py-5 gap-y-2">
           {Array.from({ length: rec.numOfAfternoonSlots }).map((_, k) => (
             <div key={k} className="flex flex-col gap-y-2">
               <ComboBox
@@ -119,7 +119,7 @@ const DraftTableRow = React.memo(function DraftTableRow({
                   placeholder='Enter Lab Slot'
                   value={teacherSelections[rec._id]?.an[k].labSlot || ""}
                   onCommit={(value) => handleSlotChange(rec._id, "an", k, "labSlot", value, false)}
-                  className='max-w-50'
+                  className='max-w-48'
                 />
               ) : null}
             </div>
