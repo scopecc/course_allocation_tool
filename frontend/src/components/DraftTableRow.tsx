@@ -50,7 +50,7 @@ const DraftTableRow = React.memo(function DraftTableRow({
       {allFields.map((field) =>
         visibleFields.includes(field.key)
           ? (
-            <TableCell className="max-w-50 whitespace-normal" key={field.key}>
+            <TableCell className="max-w-45 whitespace-normal" key={field.key}>
               {rec[field.key]}
             </TableCell>
           )
@@ -86,7 +86,7 @@ const DraftTableRow = React.memo(function DraftTableRow({
               />
               {rec.P > 0 && teacherSelections[rec._id]?.fn[k] !== undefined ? (
                 <SlotInput
-                  className="w-50 mb-3"
+                  className="max-w-50 mb-3"
                   value={teacherSelections[rec._id]?.fn[k].labSlot || ""}
                   placeholder="Enter Lab Slot"
                   onCommit={(value) => handleSlotChange(rec._id, "fn", k, "labSlot", value, false)}
@@ -119,7 +119,7 @@ const DraftTableRow = React.memo(function DraftTableRow({
                   placeholder='Enter Lab Slot'
                   value={teacherSelections[rec._id]?.an[k].labSlot || ""}
                   onCommit={(value) => handleSlotChange(rec._id, "an", k, "labSlot", value, false)}
-                  className='w-50'
+                  className='max-w-50'
                 />
               ) : null}
             </div>

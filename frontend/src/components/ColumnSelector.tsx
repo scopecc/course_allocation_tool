@@ -17,7 +17,7 @@ export default function ColumnSelector({
   toggleField,
 }: ColumnSelectorProps) {
   return (
-    <div className="mb-4 flex justify-end gap-x-4">
+    <div className="flex justify-end gap-x-4">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline">Select Columns</Button>

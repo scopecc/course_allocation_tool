@@ -11,6 +11,7 @@ import ColumnSelector from "@/components/ColumnSelector";
 import { socket } from "@/lib/socket";
 
 import { Draft } from "@/types/draft"
+import { Checkbox } from "./ui/checkbox";
 import { TeacherSelections } from "@/types/teacherSelection";
 import { Record } from "@/types/record";
 import { Faculty } from "@/types/faculty";
@@ -21,6 +22,8 @@ import { DraftViewProps } from "@/types/props";
 import { PaginationBar } from "./PaginationBar";
 import DraftTableRow from "./DraftTableRow";
 import { DraftTableHeader } from "./DraftTableHeader";
+import { FilterComponent } from "./FilterComponent";
+import { DropdownMenuCheckboxItem } from "./ui/dropdown-menu";
 
 
 const allFields: Field[] = [
@@ -50,7 +53,8 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
   const teacherSelectionsRef = useRef(teacherSelections);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterBy, setFilterBy] = useState<keyof Record | "all">("all");
+  const [filterActive, setFilterActive] = useState(false);
+  const [filterBy, setFilterBy] = useState<FieldKey>('sNo');
   const [filterValue, setFilterValue] = useState("");
   const [sortBy, setSortBy] = useState<keyof Record>("courseTitle");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -87,6 +91,13 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
       );
     }
 
+    if (filterActive && filterValue !== "") {
+      records = records.filter((record) => {
+        const value = String(record[filterBy] ?? "").toLowerCase();
+        return value.includes(filterValue.toLowerCase());
+      })
+    }
+
     if (sortBy) {
       records = [...records].sort((a, b) => {
         const aValue = a[sortBy];
@@ -101,7 +112,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
     }
 
     return records;
-  }, [draft?.records, searchQuery, sortBy, sortDirection])
+  }, [draft?.records, searchQuery, sortBy, sortDirection, filterBy, filterValue, filterActive])
 
   // paginate records
   const paginatedRecords = useMemo(() => {
@@ -357,6 +368,14 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
     setSortDirection(direction);
   };
 
+  function handleFilterChange(column: FieldKey | null, value: string) {
+    if (column === null) {
+      alert('Error: Select a valid column');
+    }
+    setFilterBy(column ?? "sNo");
+    setFilterValue(value);
+  }
+
 
   async function setDraftName(newName: string): Promise<void> {
     setEditingName(false);
@@ -382,8 +401,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
   };
 
   return (
-
-    <div className="flex flex-col items-center my-2">
+    <div className="flex flex-col items-center my-2 mx-2 overflow-x-hidden">
 
       <div className="flex flex-row gap-x-4 my-2">
         {
@@ -409,11 +427,26 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
         }
       </div>
 
-      <ColumnSelector
-        allFields={allFields}
-        visibleFields={visibleFields}
-        toggleField={toggleField}
-      />
+      <div className="flex flex-row items-center gap-x-4 mb-4 justify-between w-full px-4">
+        <div className="flex flex-row items-center gap-x-2">
+          <Checkbox
+            checked={filterActive}
+            onCheckedChange={() => setFilterActive((prev) => !prev)}
+          />
+
+          <FilterComponent
+            columns={allFields}
+            onFilterSubmit={handleFilterChange}
+          />
+        </div>
+
+        <ColumnSelector
+          allFields={allFields}
+          visibleFields={visibleFields}
+          toggleField={toggleField}
+        />
+
+      </div>
 
       <div className="w-full">
         <Table className="border rounded-sm">

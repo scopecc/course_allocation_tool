@@ -5,25 +5,24 @@ import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const draftRouter = Router();
 
-draftRouter.post('/',
+draftRouter.post(
+  "/",
   upload.fields([
     { name: "consolidatedFile", maxCount: 1 },
     { name: "loadFile", maxCount: 1 },
   ]),
   authMiddleware,
-  draftControllers.createDraft
+  draftControllers.createDraft,
 );
 
-draftRouter.get('/', authMiddleware, draftControllers.getAllDrafts);
+draftRouter.get("/", authMiddleware, draftControllers.getAllDrafts);
 
-draftRouter.post('/export/:id', draftControllers.exportSheets);
+draftRouter.post("/export/:id", authMiddleware, draftControllers.exportSheets);
 
-draftRouter.get('/:id', authMiddleware, draftControllers.getDraftFromId);
+draftRouter.get("/:id", authMiddleware, draftControllers.getDraftFromId);
 
-draftRouter.delete('/:id', authMiddleware, draftControllers.deleteDraftById);
+draftRouter.delete("/:id", authMiddleware, draftControllers.deleteDraftById);
 
-draftRouter.patch('/:id', authMiddleware, draftControllers.updateDraftName);
+draftRouter.patch("/:id", authMiddleware, draftControllers.updateDraftName);
 
 export default draftRouter;
-
-
