@@ -4,6 +4,14 @@ import { Button } from "@/components/ui/button"; // assuming shadcn/ui
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { Input } from "./ui/input";
 
+interface PaginationBarProps {
+  currentPage: number;
+  setCurrentPage: (page: number) => void;
+  totalPages: number;
+  rowsPerPage: number;
+  setRowsPerPage: (rows: number) => void;
+  totalRecords: number;
+}
 export function PaginationBar({
   currentPage,
   setCurrentPage,
@@ -11,14 +19,7 @@ export function PaginationBar({
   rowsPerPage,
   setRowsPerPage,
   totalRecords,
-}: {
-  currentPage: number;
-  setCurrentPage: (page: number) => void;
-  totalPages: number;
-  rowsPerPage: number;
-  setRowsPerPage: (rows: number) => void;
-  totalRecords: number;
-}) {
+}: PaginationBarProps) {
   const [gotoPage, setGotoPage] = useState("");
 
   const handleGotoPage = () => {

@@ -5,7 +5,7 @@ import { Button, Card } from "./ui";
 import { Table, TableCell, TableHead, TableRow } from "@/components/ui/table";
 import { useRouter } from "next/navigation";
 
-type DraftDetailsProps = {
+interface DraftDetailsProps {
   draft: Draft | null;
 }
 

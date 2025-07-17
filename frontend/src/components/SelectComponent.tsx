@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-type SelectComponentProps = {
+interface SelectComponentProps {
   placeHolder: string;
   label?: string;
   values: string[];

@@ -9,7 +9,7 @@ import DraftDetails from "./DraftDetails";
 import ExportDetails from "./ExportDetails";
 import { Separator } from "@/components/ui/separator";
 
-type ExportViewProps = {
+interface ExportViewProps {
   draftId: string;
 }
 

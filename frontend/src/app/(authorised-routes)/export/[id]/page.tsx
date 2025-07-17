@@ -1,7 +1,7 @@
 import ExportView from "@/components/ExportView";
 import React from "react";
 
-type ExportProps = {
+interface ExportProps {
   params: {
     id: string;
   }

@@ -11,7 +11,7 @@ import { ArrowRight, Download, Eye, Pencil } from "lucide-react";
 import { DeleteDialogModal } from "./DeleteDialogModal";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-type DraftsTableProps = {
+interface DraftsTableProps {
   drafts: Draft[];
   onDelete: () => void;
 }

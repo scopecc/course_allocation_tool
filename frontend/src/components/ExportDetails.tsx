@@ -14,7 +14,7 @@ import { Select } from "@radix-ui/react-select";
 import axios from "axios";
 import { toast } from "sonner";
 
-type ExportDetailsProps = {
+interface ExportDetailsProps {
   draft: Draft | null;
 };
 

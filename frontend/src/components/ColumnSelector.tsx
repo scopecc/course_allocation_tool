@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/types/Field"; // Adjust path if needed
 import { FieldKey } from "@/types/recordFieldKey"; // Assuming FieldKey is your type for field keys
 
-type ColumnSelectorProps = {
+interface ColumnSelectorProps {
   allFields: Field[];
   visibleFields: FieldKey[];
   toggleField: (key: FieldKey) => void;

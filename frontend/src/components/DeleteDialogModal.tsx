@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Trash } from "lucide-react";
 
-type DeleteDialogModalProps = {
+interface DeleteDialogModalProps {
   onDelete: () => void | Promise<void>;
 }
 
