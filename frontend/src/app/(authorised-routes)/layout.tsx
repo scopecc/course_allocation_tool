@@ -1,6 +1,6 @@
 "use client";
 
-import React, { ReactNode } from "react";
+import React, { ReactNode, useState, useEffect } from "react";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -10,9 +10,35 @@ import {
 } from "@/components/ui/navigation-menu"
 
 import Link from "next/link";
+import axios from "axios";
 import { ModeToggle } from "@/components/mode-toggle";
+import { Card } from "@/components/ui/card";
+import { CircleIcon } from "lucide-react";
+import { UserAccountPopover } from "@/components/UserAccountPopover";
+
+interface UserInfo {
+  userId: string,
+  employeeId: string,
+  email: string
+};
+
 
 const AuthorizedLayout = ({ children }: { children: ReactNode }) => {
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const fetchData = async () => {
+    try {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, { withCredentials: true });
+      setUserInfo(res.data.user);
+      console.log(res.data);
+    } catch (err) {
+      console.log('im too old for ts');
+    }
+  };
+
+  useEffect(() => {
+    fetchData()
+  }, []);
+
 
   return (
     <div className="flex flex-col items-center h-screen w-full">
@@ -35,6 +61,9 @@ const AuthorizedLayout = ({ children }: { children: ReactNode }) => {
         </nav>
         <div>
           {/* TODO: add username modal here */}
+          <UserAccountPopover
+            userInfo={userInfo}
+          />
         </div>
       </div>
       <section className="w-full px-4">

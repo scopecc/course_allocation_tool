@@ -28,7 +28,7 @@ async function signIn(req, res) {
       const updatedUser = await Users.findOneAndUpdate(
         { email: existingUser.email },
         { otp: otp },
-        { new: true }
+        { new: true },
       );
 
       if (!updatedUser) {
@@ -43,7 +43,7 @@ async function signIn(req, res) {
         await sendMail(
           existingUser.email,
           "OTP for Sign In",
-          `Your OTP for sign in is ${otp}. Please use this OTP to complete your sign in process.`
+          `Your OTP for sign in is ${otp}. Please use this OTP to complete your sign in process.`,
         );
         return res.status(200).json({
           status: "success",
@@ -99,16 +99,21 @@ async function verifyOtp(req, res) {
         message: "The OTP you entered is incorrect",
       });
     }
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      // set to 1h before deployment
-      expiresIn: "48h",
-    });
-    res.cookie('auth_token', token, {
+
+    const token = jwt.sign(
+      { userId: user._id, employeeId: user.employeeId, email: user.email },
+      process.env.JWT_SECRET,
+      {
+        // set to 1h before deployment
+        expiresIn: "48h",
+      },
+    );
+    res.cookie("auth_token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Lax',
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Lax",
       maxAge: 48 * 60 * 60 * 1000, // one hour, for test
-      path: '/',
+      path: "/",
     });
     return res.status(200).json({
       status: "success",
@@ -123,7 +128,36 @@ async function verifyOtp(req, res) {
   }
 }
 
+async function me(req, res) {
+  const token = req.cookies.auth_token;
+  if (!token) {
+    console.log("Unauthorized: No Token Provided.");
+    return res.status(401).json({ error: "Unauthorized: No Token Provided" });
+  }
+
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    return res.status(200).json({
+      user: {
+        userId: payload.userId,
+        employeeId: payload.employeeId,
+        email: payload.email,
+      },
+    });
+  } catch (err) {
+    console.log("Forbidden: Invalid token");
+    return res.status(403).json({ error: "Forbidden: Invalid token" });
+  }
+}
+
+async function logout(req, res) {
+  res.clearCookie("token");
+  res.json({ message: "Logged out" });
+}
+
 export default {
   signIn,
   verifyOtp,
+  me,
+  logout,
 };

@@ -4,7 +4,7 @@ import {
   InputOTPSlot,
   InputOTPSeparator,
 } from "../ui";
-type InputOTPControlledProps = {
+interface InputOTPControlledProps {
   otp: number;
   setOtp: (val: number) => void;
 };

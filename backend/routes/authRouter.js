@@ -11,4 +11,8 @@ authRouter.post("/signin", authControllers.signIn);
 
 authRouter.post("/verify-otp", authControllers.verifyOtp);
 
+authRouter.get("/me", authControllers.me);
+
+authRouter.post("/logout", authControllers.logout);
+
 export default authRouter;
