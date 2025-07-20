@@ -105,14 +105,14 @@ async function verifyOtp(req, res) {
       process.env.JWT_SECRET,
       {
         // set to 1h before deployment
-        expiresIn: "48h",
+        expiresIn: "15m",
       },
     );
     res.cookie("auth_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "Lax",
-      maxAge: 48 * 60 * 60 * 1000, // one hour, for test
+      sameSite: "lax",
+      maxAge: 15 * 60 * 1000, // 15 minutes
       path: "/",
     });
     return res.status(200).json({
