@@ -1,8 +1,7 @@
 import XLSX from "xlsx";
-import ExcelJS from 'exceljs';
-import path from 'path';
-import fs from 'fs';
-
+import ExcelJS from "exceljs";
+import path from "path";
+import fs from "fs";
 
 function getYearLabel(batchYear) {
   const currentYear = new Date().getFullYear();
@@ -16,8 +15,12 @@ function getYearLabel(batchYear) {
 
 function getTeacherNameById(facultyList, teacherId) {
   if (!teacherId) return "";
-  const teacher = facultyList.find((t) => t._id.toString() === teacherId.toString());
-  return teacher ? `${teacher.employeeId} ${teacher.prefix} ${teacher.name}`.trim() : "";
+  const teacher = facultyList.find(
+    (t) => t._id.toString() === teacherId.toString(),
+  );
+  return teacher
+    ? `${teacher.employeeId} ${teacher.prefix} ${teacher.name}`.trim()
+    : "";
 }
 
 function autoSizeColumns(worksheet, maxColumnCount = 150) {
@@ -80,7 +83,7 @@ async function generateMainFile(draftId, draft, selectedDept, mainFilename) {
 
   worksheet.views = [
     {
-      state: 'frozen',
+      state: "frozen",
       ySplit: 1,
     },
   ];
@@ -89,28 +92,28 @@ async function generateMainFile(draftId, draft, selectedDept, mainFilename) {
   let currentYear = null;
   let separatorIndexes = [];
 
+  console.log("selectedDept: ", selectedDept);
   const filteredRecords = draft.records
     .filter((record) => record.stream === selectedDept)
     .sort((a, b) => a.year - b.year);
 
-
   for (const record of filteredRecords) {
     const yearLabel = getYearLabel(parseInt(record.year));
-    const isNewYear = currentYear !== record.year
+    const isNewYear = currentYear !== record.year;
     currentYear = record.year;
 
     if (isNewYear && currentYear !== null) {
-      const separatorRow = worksheet.addRow(new Array(25).fill(' '));
+      const separatorRow = worksheet.addRow(new Array(25).fill(" "));
 
       separatorIndexes.push(serial);
 
       separatorRow.height = 15;
       separatorRow.eachCell((cell) => {
         cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FFFF99' }, //TODO: let the user choose the color
-        }
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FFFF99" }, //TODO: let the user choose the color
+        };
         cell.border = {};
         cell.font = { color: { argb: "FFFFFF" }, size: 1 }; // make text invisible for the separator row
       });
@@ -162,7 +165,10 @@ async function generateMainFile(draftId, draft, selectedDept, mainFilename) {
       const teacher = record.afternoonTeachers[i];
       const baseIndex = baseColStart + 1 + i;
 
-      afternoonNameRow.getCell(baseIndex).value = getTeacherNameById(draft.faculty, teacher.teacher);
+      afternoonNameRow.getCell(baseIndex).value = getTeacherNameById(
+        draft.faculty,
+        teacher.teacher,
+      );
       afternoonTheoryRow.getCell(baseIndex).value = teacher.theorySlot || "";
       afternoonLabRow.getCell(baseIndex).value = teacher.labSlot || "";
     }
@@ -170,7 +176,6 @@ async function generateMainFile(draftId, draft, selectedDept, mainFilename) {
 
   // change default font size to 15, add borders to all cells
   worksheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
-
     if (rowNumber in separatorIndexes) return;
 
     row.eachCell({ includeEmpty: true }, (cell) => {
@@ -179,23 +184,23 @@ async function generateMainFile(draftId, draft, selectedDept, mainFilename) {
       };
 
       cell.font = {
-        name: 'Times New Roman',
+        name: "Times New Roman",
         size: 12,
         bold: false,
       };
 
       cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' },
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
       };
     });
   });
 
   // make the first row big and bold
   worksheet.getRow(1).font = {
-    name: 'Times New Roman',
+    name: "Times New Roman",
     bold: true,
     size: 15,
   };
@@ -217,10 +222,13 @@ async function generateAllocFile(draftId, draft, allocFilename) {
   const workbook = new ExcelJS.Workbook();
   const filePath = path.resolve(draft.loadFilePath);
   await workbook.xlsx.readFile(filePath);
-  console.log('Allocation Workbook loaded. Sheets:', workbook.worksheets.map(ws => ws.name));
+  console.log(
+    "Allocation Workbook loaded. Sheets:",
+    workbook.worksheets.map((ws) => ws.name),
+  );
   const worksheet = workbook.getWorksheet(1);
   if (!worksheet) {
-    console.error('Worksheet not found!');
+    console.error("Worksheet not found!");
     return;
   }
 
@@ -242,8 +250,10 @@ async function generateAllocFile(draftId, draft, allocFilename) {
 
       teacherCourseMap[teacherId].push({
         program: `${record.year.slice(-2)}${record.stream.slice(-3)} `,
-        course: `${record.courseCode}${record.courseTitle}`,
-        slot: [teacherObj.theorySlot, teacherObj.labSlot].filter(Boolean).join(' + '),
+        course: `${record.courseCode} - ${record.courseTitle}`,
+        slot: [teacherObj.theorySlot, teacherObj.labSlot]
+          .filter(Boolean)
+          .join(" + "),
         loadedT: facultyMap[teacherObj.teacher.toString()].loadedT,
         loadedL: facultyMap[teacherObj.teacher.toString()].loadedL,
       });
@@ -258,7 +268,7 @@ async function generateAllocFile(draftId, draft, allocFilename) {
       return;
     }
     const empId = row.getCell(2).value?.toString().trim();
-    const teacher = draft.faculty.find(t => t.employeeId === empId);
+    const teacher = draft.faculty.find((t) => t.employeeId === empId);
     if (!teacher) return;
 
     const assignments = teacherCourseMap[teacher._id.toString()] || [];
@@ -274,31 +284,33 @@ async function generateAllocFile(draftId, draft, allocFilename) {
     });
   });
 
-
   worksheet.eachRow((row) => {
     row.eachCell((cell) => {
+      cell.alignment = {
+        wrapText: true,
+      };
+
       cell.border = {
-        top: { style: 'thin' },
-        bottom: { style: 'thin' },
-        left: { style: 'thin' },
-        right: { style: 'thin' }
+        top: { style: "thin" },
+        bottom: { style: "thin" },
+        left: { style: "thin" },
+        right: { style: "thin" },
       };
     });
   });
 
-  console.log('autosizing columns');
+  console.log("autosizing columns");
   autoSizeColumns(worksheet);
-  console.log('that has been finished');
 
   const exportDir = path.join("exports", draftId);
-  console.log('gonna exporrtt now');
+  console.log("exporting file...");
   if (!fs.existsSync(exportDir)) {
     fs.mkdirSync(exportDir, { recursive: true });
   }
 
   const outputPath = path.join(exportDir, `${allocFilename}.xlsx`);
   await workbook.xlsx.writeFile(outputPath);
-  console.log('exported')
+  console.log("exported");
 
   return outputPath;
 }
