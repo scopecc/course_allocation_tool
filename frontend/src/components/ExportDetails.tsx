@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { SelectComponent } from "./SelectComponent";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Table, TableCell, TableHead, TableRow } from "@/components/ui/table";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ export default function ExportDetails({ draft }: ExportDetailsProps) {
     register,
     handleSubmit,
     setValue,
-    watch,
+    trigger,
     formState: { errors },
   } = useForm<FormValues>();
 
@@ -39,7 +39,7 @@ export default function ExportDetails({ draft }: ExportDetailsProps) {
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/draft/export/${draft?._id}`,
         {
-          selectedSchool: data.selectedDept,
+          selectedDept: data.selectedDept,
           mainFilename: data.mainFilename,
           allocationFilename: data.allocationFilename,
         },
@@ -69,12 +69,15 @@ export default function ExportDetails({ draft }: ExportDetailsProps) {
     )
   );
 
+  useEffect(() => {
+    register("selectedDept", { required: true });
+  }, [register]);
+
   return (
     <Card className="max-w-6xl px-12">
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="flex flex-col my-2 px-2 gap-y-2 items-center">
           <h1 className="font-bold text-2xl"> Export Details </h1>
-          {/*TODO: add gap between rows */}
           <Table>
             <TableRow>
               <TableHead>
@@ -85,8 +88,12 @@ export default function ExportDetails({ draft }: ExportDetailsProps) {
                 <SelectComponent
                   placeHolder="Select School"
                   values={uniqueDepartments}
-                  onSelect={(value) => setValue("selectedDept", value)}
+                  onSelect={(value) => {
+                    setValue("selectedDept", value, { shouldValidate: true });
+                    trigger("selectedDept");
+                  }}
                 />
+                {errors.selectedDept && <span className="text-red-500">This field is required</span>}
               </TableCell>
             </TableRow>
 
