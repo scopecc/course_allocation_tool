@@ -1,12 +1,17 @@
 import { useState } from "react";
 import { RowsPerPageDropdown } from "./RowsPerPageDropdown";
 import { Button } from "@/components/ui/button"; // assuming shadcn/ui
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 import { Input } from "./ui/input";
 
 interface PaginationBarProps {
   currentPage: number;
-  setCurrentPage: (page: number) => void;
+  setCurrentPage: (page: number | ((prev: number) => number)) => void;
   totalPages: number;
   rowsPerPage: number;
   setRowsPerPage: (rows: number) => void;
@@ -23,7 +28,7 @@ export function PaginationBar({
   const [gotoPage, setGotoPage] = useState("");
 
   const handleGotoPage = () => {
-    const page = Number(gotoPage)
+    const page = Number(gotoPage);
     if (!isNaN(page) && page >= 1 && page <= totalPages) {
       setCurrentPage(page);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -32,7 +37,6 @@ export function PaginationBar({
 
   return (
     <div className="flex flex-wrap justify-center gap-2 mt-6 items-center my-2">
-
       {/* Go to page input */}
       <div className="flex items-center gap-2 mr-4">
         <span className="text-sm">Go to page:</span>
@@ -80,7 +84,6 @@ export function PaginationBar({
         {Math.min(currentPage * rowsPerPage, totalRecords)} of {totalRecords}
       </div>
 
-
       {/* Next Page */}
       <Button
         variant="secondary"
@@ -88,9 +91,9 @@ export function PaginationBar({
           setCurrentPage((prev) => Math.min(prev + 1, totalPages));
           setGotoPage(String(currentPage));
           console.log(Math.min(currentPage * rowsPerPage, totalRecords));
-          console.log('current page: ', currentPage);
-          console.log('rowsPerPage: ', rowsPerPage);
-          console.log('totarec: ', totalRecords);
+          console.log("current page: ", currentPage);
+          console.log("rowsPerPage: ", rowsPerPage);
+          console.log("totarec: ", totalRecords);
           window.scrollTo({ top: 0, behavior: "smooth" });
         }}
         disabled={currentPage === totalPages}
@@ -118,4 +121,3 @@ export function PaginationBar({
     </div>
   );
 }
-
