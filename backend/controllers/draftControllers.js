@@ -2,6 +2,7 @@ import { Draft } from "../models/draftSchema.js";
 import archiver from 'archiver';
 import { extractRecords, extractFacultiesAndLoads } from "../utilities/extractFromSheet.js";
 import { generateMainFile, generateAllocFile } from "../utilities/exportToSheet.js";
+import { deleteFile } from "../utilities/deleteFile.js";
 
 async function createDraft(req, res) {
   try {
@@ -89,6 +90,12 @@ async function deleteDraftById(req, res) {
     if (!draft) {
       return res.status(404).json({ error: 'Draft not found! ' });
     }
+
+    const loadFileToDelete = draft.loadFilePath
+    const consolidatedFileToDelete = draft.consolidatedFilePath
+
+    deleteFile(loadFileToDelete);
+    deleteFile(consolidatedFileToDelete)
 
     await draft.deleteOne();
 
