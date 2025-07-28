@@ -16,7 +16,7 @@ dotenv.config();
 const corsOptions = {
   origin: process.env.CLIENT_URL,
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
 };
 
 const io = new Server(server, {
@@ -26,7 +26,7 @@ const io = new Server(server, {
   },
 });
 
-app.use(cors(corsOptions));
+app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 connectDB();
