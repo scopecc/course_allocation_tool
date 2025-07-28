@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Button } from "./ui";
 import { DeleteDraftResponse } from "@/types/response";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Download, Eye, Pencil } from "lucide-react";
+import { Download, Pencil } from "lucide-react";
 import { DeleteDialogModal } from "./DeleteDialogModal";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 

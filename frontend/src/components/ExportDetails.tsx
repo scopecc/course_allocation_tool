@@ -1,29 +1,26 @@
 "use client";
 
-import { Draft } from "@/types/draft"
+import { Draft } from "@/types/draft";
 import { Card } from "@/components/ui/card";
 import { SelectComponent } from "./SelectComponent";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Table, TableCell, TableHead, TableRow } from "@/components/ui/table";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "./ui/textarea";
-import { Select } from "@radix-ui/react-select";
 import axios from "axios";
 import { toast } from "sonner";
 
 interface ExportDetailsProps {
   draft: Draft | null;
-};
-
+}
 
 type FormValues = {
   selectedDept: string;
   mainFilename: string;
   allocationFilename: string;
-}
+};
 
 export default function ExportDetails({ draft }: ExportDetailsProps) {
   const {
@@ -44,22 +41,22 @@ export default function ExportDetails({ draft }: ExportDetailsProps) {
           allocationFilename: data.allocationFilename,
         },
         {
-          responseType: 'blob',
+          responseType: "blob",
           withCredentials: true,
         }
       );
-      const blob = new Blob([res.data], { type: 'application/zip' });
+      const blob = new Blob([res.data], { type: "application/zip" });
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
-      a.download = `${data.mainFilename || 'export'}.zip`;
+      a.download = `${data.mainFilename || "export"}.zip`;
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Export failed, ', error);
-      toast.error("Failed to export file")
+      console.error("Export failed, ", error);
+      toast.error("Failed to export file");
     }
-  }
+  };
 
   const uniqueDepartments = Array.from(
     new Set(
@@ -93,7 +90,9 @@ export default function ExportDetails({ draft }: ExportDetailsProps) {
                     trigger("selectedDept");
                   }}
                 />
-                {errors.selectedDept && <span className="text-red-500">This field is required</span>}
+                {errors.selectedDept && (
+                  <span className="text-red-500">This field is required</span>
+                )}
               </TableCell>
             </TableRow>
 
@@ -107,7 +106,9 @@ export default function ExportDetails({ draft }: ExportDetailsProps) {
                   placeholder="e.g. BCE_WINTER 24-25"
                   {...register("mainFilename", { required: true })}
                 />
-                {errors.mainFilename && <span className="text-red-500">This field is required</span>}
+                {errors.mainFilename && (
+                  <span className="text-red-500">This field is required</span>
+                )}
               </TableCell>
             </TableRow>
 
@@ -121,15 +122,20 @@ export default function ExportDetails({ draft }: ExportDetailsProps) {
                   placeholder={"e.g. " + draft?.loadFileName + "-filled"}
                   {...register("allocationFilename", { required: true })}
                 />
-                {errors.allocationFilename && <span className="text-red-500">This field is required</span>}
+                {errors.allocationFilename && (
+                  <span className="text-red-500">This field is required</span>
+                )}
               </TableCell>
             </TableRow>
           </Table>
-          <Button type="submit" className="mt-4 px-4 py-2 bg-blue-600 text-white rounded">
+          <Button
+            type="submit"
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
+          >
             Download Files
           </Button>
         </div>
       </form>
     </Card>
-  )
+  );
 }

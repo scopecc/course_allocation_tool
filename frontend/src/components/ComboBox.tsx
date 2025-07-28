@@ -1,23 +1,40 @@
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList, CommandInput } from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+  CommandInput,
+} from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check } from "lucide-react";
 import { useState } from "react";
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 import { CommandSeparator } from "cmdk";
 import { Faculty } from "@/types/faculty";
 
 interface ComboBoxProps {
-  options: Faculty[] | undefined,
-  value: Faculty | null,
-  onChange: (value: string) => void,
-  placeHolder: string,
+  options: Faculty[] | undefined;
+  value: Faculty | null;
+  onChange: (value: string) => void;
+  placeHolder: string;
 }
 
-export default function ComboBox({ options, value, onChange, placeHolder }: ComboBoxProps) {
+export default function ComboBox({
+  options,
+  value,
+  onChange,
+  placeHolder,
+}: ComboBoxProps) {
   const [open, setOpen] = useState(false);
 
-  const displayName = value === null ? placeHolder : `${value.prefix} ${value.name}`;
+  const displayName =
+    value === null ? placeHolder : `${value.prefix} ${value.name}`;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -61,18 +78,25 @@ export default function ComboBox({ options, value, onChange, placeHolder }: Comb
                   <div className="flex justify-between w-full">
                     <span className="w-12 truncate">{option.employeeId}</span>
 
-                    <span className="ml-4">{option.prefix} {option.name}</span>
+                    <span className="ml-4">
+                      {option.prefix} {option.name}
+                    </span>
                     <div className="flex gap-4 min-w-[100px] justify-end text-right">
-                      <span className="ml-2">{option.loadT - option.loadedT}</span>
-                      <span className="w-12 truncate">{option.loadL - option.loadedL}</span>
+                      <span className="ml-2">
+                        {option.loadT - option.loadedT}
+                      </span>
+                      <span className="w-12 truncate">
+                        {option.loadL - option.loadedL}
+                      </span>
                     </div>
                   </div>
 
                   <Check
-                    className={cn("ml-auto", value?._id === option._id ? "opacity-100" : "opacity-0"
+                    className={cn(
+                      "ml-auto",
+                      value?._id === option._id ? "opacity-100" : "opacity-0"
                     )}
                   />
-
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -80,5 +104,5 @@ export default function ComboBox({ options, value, onChange, placeHolder }: Comb
         </Command>
       </PopoverContent>
     </Popover>
-  )
-};
+  );
+}
