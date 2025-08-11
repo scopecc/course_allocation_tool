@@ -16,7 +16,7 @@ import { Record } from "@/types/record";
 import { Faculty } from "@/types/faculty";
 import { FieldKey } from "@/types/recordFieldKey";
 import { Field } from "@/types/Field";
-import { Edit } from "lucide-react"; //TODO: add sorting
+import { Edit } from "lucide-react";
 import { DraftViewProps } from "@/types/props";
 import { PaginationBar } from "./PaginationBar";
 import DraftTableRow from "./DraftTableRow";
@@ -52,7 +52,6 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
   const draftNameRef = useRef<HTMLInputElement>(null);
   const teacherSelectionsRef = useRef(teacherSelections);
 
-  // const [searchQuery, setSearchQuery] = useState("");
   const [filterActive, setFilterActive] = useState(false);
   const [filterBy, setFilterBy] = useState<FieldKey>("sNo");
   const [filterValue, setFilterValue] = useState("");
@@ -87,15 +86,6 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
   const processedRecords = useMemo(() => {
     let records: Record[] = draft?.records || [];
 
-    // if (searchQuery.trim() !== "") {
-    //   const q = searchQuery.toLowerCase();
-    //   records = records.filter(
-    //     (record) =>
-    //       record.courseTitle.toLowerCase().includes(q) ||
-    //       record.courseCode.toString().includes(q)
-    //   );
-    // }
-
     if (filterActive && filterValue !== "") {
       records = records.filter((record) => {
         const value = String(record[filterBy] ?? "").toLowerCase();
@@ -119,7 +109,6 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
     return records;
   }, [
     draft?.records,
-    // searchQuery,
     sortBy,
     sortDirection,
     filterBy,
@@ -232,18 +221,18 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
             rec.forenoonTeachers.length > 0
               ? rec.forenoonTeachers
               : Array.from({ length: rec.numOfForenoonSlots }).map(() => ({
-                  teacher: "",
-                  theorySlot: "",
-                  labSlot: "",
-                })),
+                teacher: "",
+                theorySlot: "",
+                labSlot: "",
+              })),
           an:
             rec.afternoonTeachers.length > 0
               ? rec.afternoonTeachers
               : Array.from({ length: rec.numOfAfternoonSlots }).map(() => ({
-                  teacher: "",
-                  theorySlot: "",
-                  labSlot: "",
-                })),
+                teacher: "",
+                theorySlot: "",
+                labSlot: "",
+              })),
         };
       });
       setTeacherSelections(initialSelections);

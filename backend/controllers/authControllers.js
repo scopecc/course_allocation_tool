@@ -104,7 +104,6 @@ async function verifyOtp(req, res) {
       { userId: user._id, employeeId: user.employeeId, email: user.email },
       process.env.JWT_SECRET,
       {
-        // set to 1h before deployment
         expiresIn: "15m",
       },
     );
@@ -112,7 +111,7 @@ async function verifyOtp(req, res) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 15 * 60 * 1000, // 15 minutes
+      maxAge: 15 * 60 * 1000, // 15 minutes for now
       path: "/",
     });
     return res.status(200).json({

@@ -47,5 +47,4 @@ const teachersSchema = new mongoose.Schema({
   },
 });
 
-// export const Teachers = mongoose.model("Teachers", teachersSchema);
 export default teachersSchema;

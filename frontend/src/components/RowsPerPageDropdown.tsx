@@ -1,4 +1,3 @@
-// import { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -12,7 +11,6 @@ export function RowsPerPageDropdown({
 }: {
   onChange: (rows: number) => void;
 }) {
-  // const [value, setValue] = useState(15);
   return (
     <div className="flex items-center gap-2">
       <Select onValueChange={(value) => onChange(Number(value))}>
