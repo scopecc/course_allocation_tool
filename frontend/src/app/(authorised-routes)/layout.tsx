@@ -65,7 +65,6 @@ const AuthorizedLayout = ({ children }: { children: ReactNode }) => {
           </NavigationMenu>
         </nav>
         <div>
-          {/* TODO: add username modal here */}
           <UserAccountPopover userInfo={userInfo!} />
         </div>
       </div>
