@@ -4,24 +4,24 @@ import { Users } from "../models/index.js";
 import sendMail from "../utilities/nodemailer.js";
 
 async function signIn(req, res) {
-  const { email, employeeId } = req.body;
-  if (!email && !employeeId) {
+  const { employeeId } = req.body;
+  if (!employeeId) {
     return res.status(400).json({
       status: "error",
       error: "Invalid input",
-      message: "Please provide either email or employee ID",
+      message: "Please provide employee ID",
     });
   }
 
   try {
     const existingUser = await Users.findOne({
-      $or: [{ email: email }, { employeeId: employeeId }],
+      employeeId: employeeId,
     });
     if (!existingUser) {
       return res.status(404).json({
         status: "error",
         error: "User not found",
-        message: "No user found with this email",
+        message: "No user found with this employee ID",
       });
     } else {
       const otp = Math.floor(100000 + Math.random() * 900000);

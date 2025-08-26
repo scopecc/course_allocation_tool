@@ -39,8 +39,8 @@ const SignInPage = () => {
   // Sign In Handler
   const onSignIn = async (data: SignInRequest) => {
     setIsLoading(true);
-    if (!data.employeeId && !data.email) {
-      toast.error("Please enter all the fields");
+    if (!data.employeeId) {
+      toast.error("Please fill the Employee ID Field");
       setIsLoading(false);
       return;
     }
@@ -119,10 +119,6 @@ const SignInPage = () => {
               <div className="space-y-2">
                 <Label htmlFor="employeeId">Employee Id</Label>
                 <Input {...register("employeeId")} id="employeeId" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input {...register("email")} id="email" />
               </div>
               <CardFooter className="flex justify-end p-0 pt-4">
                 <Button type="submit">

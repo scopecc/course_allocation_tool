@@ -1,5 +1,4 @@
 export interface SignInRequest {
-  email?: string;
   employeeId?: string;
 }
 
