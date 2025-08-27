@@ -1,4 +1,4 @@
-export interface Faculty{
+export interface Faculty {
   _id: string;
   name: string;
   employeeId: string;

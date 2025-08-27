@@ -59,12 +59,12 @@ const DraftTableRow = React.memo(function DraftTableRow({
 
       <TableCell>
         <SlotInput
-          value={teacherSelections[rec._id]?.fn[0]?.theorySlot || ""}
-          className="max-w-36"
+          value={teacherSelections[rec._id]?.fn[0]?.theorySlot.split(" + ") || []}
           placeholder="Enter Theory Slot"
-          onCommit={(value) => handleSlotChange(rec._id, "fn", 0, "theorySlot", value, false)}
+          onCommit={(value) => handleSlotChange(rec._id, "fn", 0, "theorySlot", value.join(" + "), false)}
+          type="theory"
+          autoSize={false}
         />
-
       </TableCell>
 
       <TableCell>
@@ -87,9 +87,10 @@ const DraftTableRow = React.memo(function DraftTableRow({
               {rec.P > 0 && teacherSelections[rec._id]?.fn[k] !== undefined ? (
                 <SlotInput
                   className="max-w-48 mb-3"
-                  value={teacherSelections[rec._id]?.fn[k].labSlot || ""}
+                  value={teacherSelections[rec._id]?.fn[k].labSlot?.split(" + ") || []}
                   placeholder="Enter Lab Slot"
-                  onCommit={(value) => handleSlotChange(rec._id, "fn", k, "labSlot", value, false)}
+                  type="lab"
+                  onCommit={(value) => handleSlotChange(rec._id, "fn", k, "labSlot", value.join(" + "), false)}
                 />
               ) : null}
             </div>
@@ -117,8 +118,9 @@ const DraftTableRow = React.memo(function DraftTableRow({
               {rec.P > 0 && teacherSelections[rec._id]?.an[k] !== undefined ? (
                 <SlotInput
                   placeholder='Enter Lab Slot'
-                  value={teacherSelections[rec._id]?.an[k].labSlot || ""}
-                  onCommit={(value) => handleSlotChange(rec._id, "an", k, "labSlot", value, false)}
+                  value={teacherSelections[rec._id]?.an[k].labSlot?.split(" + ") || []}
+                  onCommit={(value) => handleSlotChange(rec._id, "an", k, "labSlot", value.join(" + "), false)}
+                  type="lab"
                   className='max-w-48'
                 />
               ) : null}
