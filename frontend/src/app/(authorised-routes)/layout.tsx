@@ -31,7 +31,7 @@ const AuthorizedLayout = ({ children }: { children: ReactNode }) => {
       setUserInfo(res.data.user);
       console.log(res.data);
     } catch (err) {
-      console.log("im too old for ts", err);
+      console.log("Error obtaining user info,", err)
     }
   };
 

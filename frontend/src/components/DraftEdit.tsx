@@ -22,6 +22,10 @@ import { PaginationBar } from "./PaginationBar";
 import DraftTableRow from "./DraftTableRow";
 import { DraftTableHeader } from "./DraftTableHeader";
 import { FilterComponent } from "./FilterComponent";
+import { FacultyMap } from "@/types/FacultyMap";
+import { error } from "node:console";
+import updateTeacherSlots from "@/lib/updateTeacherSlots";
+import checkAndAssignSlots from "@/lib/checkAndAssignSlots";
 
 const allFields: Field[] = [
   { key: "sNo", label: "S.No" },
@@ -45,6 +49,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(15); //  TODO: change this later to be editable
   const availableTeachersRef = useRef<Faculty[] | undefined>(undefined);
+  const facultyMapRef = useRef<FacultyMap | null>(null);
   const [editingName, setEditingName] = useState(false);
   const [teacherSelections, setTeacherSelections] = useState<TeacherSelections>(
     {}
@@ -57,6 +62,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
   const [filterValue, setFilterValue] = useState("");
   const [sortBy, setSortBy] = useState<keyof Record>("courseTitle");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const teachersMap = facultyMapRef.current;
 
   useEffect(() => {
     teacherSelectionsRef.current = teacherSelections;
@@ -211,6 +217,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
   useEffect(() => {
     if (draft) {
       const initialSelections: typeof teacherSelections = {};
+      const facultySlotMap: { [teacherId: string]: { [recordId: string]: Set<string> } } = {};
       draft?.records.forEach((rec) => {
         initialSelections[rec._id] = {
           // this is just to make sure the forenoon & afternoon teachers arrays
@@ -234,9 +241,27 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
                 labSlot: "",
               })),
         };
+        [...rec.forenoonTeachers, ...rec.afternoonTeachers].forEach((t) => {
+          if (!t.teacher) return;
+          if (!facultySlotMap[t.teacher]) {
+            facultySlotMap[t.teacher] = {}
+          }
+          if (!facultySlotMap[t.teacher][rec._id]) {
+            facultySlotMap[t.teacher][rec._id] = new Set<string>();
+          }
+
+          if (t.theorySlot !== "") t.theorySlot.split(" + ").forEach(tslot => facultySlotMap[t.teacher][rec._id].add(tslot));
+          if (t.labSlot && t.labSlot !== "") t.labSlot?.split(" + ").forEach(lslot => facultySlotMap[t.teacher][rec._id].add(lslot));
+        })
       });
       setTeacherSelections(initialSelections);
+
       availableTeachersRef.current = draft.faculty;
+      facultyMapRef.current = draft.faculty.reduce((map, faculty) => {
+        const slots = facultySlotMap[faculty._id] ?? new Set<string>();
+        map[faculty._id] = { ...faculty, slots };
+        return map;
+      }, {} as FacultyMap);
     }
   }, [draft]);
 
@@ -272,6 +297,18 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
         },
       }));
 
+      // Check if the slot already exists (in another record) for the teacher
+      const oldTeacherId = teacherSelections[recordId]?.[slotType]?.[index]?.teacher;
+      checkAndAssignSlots(
+        facultyMapRef.current,
+        recordId,
+        oldTeacherId,
+        newValue,
+        (teacherName, conflicts) => {
+          toast.error(`${teacherName} already has slot(s) ${conflicts.join(" ")} assigned.`);
+        }
+      );
+
       if (!fromSocket) {
         socket.emit("slotUpdate", {
           senderSocketId: socket.id,
@@ -286,6 +323,14 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
     },
     [teacherSelections, draftId]
   );
+
+  /*
+   * add a slots set to faculty[]
+   * initialize it to empty
+   * store teachers as a map
+   * check for each slot created if the teacher exists there 
+   * and that teacher has the same slot in their set 
+   */
 
   const handleTeacherChange = useCallback(
     (
@@ -317,26 +362,32 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
         };
       });
 
+      // add the set of slots to the newly selected teacher, remove the set of slots from the old teacher (if any)
+      const oldTeacher = teacherSelections[recordId]?.[slotType]?.[index]?.teacher;
+      const currentSlot = teacherSelections[recordId]?.[slotType]?.[index] ?? null;
+      if (currentSlot) {
+        updateTeacherSlots(teachersMap, recordId, oldTeacher, newTeacherId, currentSlot);
+      }
+
       // efficiently update teacher load counts
-      const teachersMap = new Map(
+      const teachersLoadMap = new Map(
         availableTeachersRef.current?.map((t) => [t._id, { ...t }])
       );
-      const oldTeacherId =
-        teacherSelections[recordId]?.[slotType]?.[index]?.teacher;
+      const oldTeacherId = teacherSelections[recordId]?.[slotType]?.[index]?.teacher;
 
-      if (oldTeacherId && teachersMap.has(oldTeacherId)) {
-        const t = teachersMap.get(oldTeacherId)!;
+      if (oldTeacherId && teachersLoadMap.has(oldTeacherId)) {
+        const t = teachersLoadMap.get(oldTeacherId)!;
         t.loadedT = Math.max(0, t.loadedT - 1);
         if (recordP > 0) t.loadedL = Math.max(0, t.loadedL - 1);
       }
 
-      if (newTeacherId && teachersMap.has(newTeacherId)) {
-        const t = teachersMap.get(newTeacherId)!;
+      if (newTeacherId && teachersLoadMap.has(newTeacherId)) {
+        const t = teachersLoadMap.get(newTeacherId)!;
         t.loadedT += 1;
         if (recordP > 0) t.loadedL += 1;
       }
 
-      availableTeachersRef.current = Array.from(teachersMap.values());
+      availableTeachersRef.current = Array.from(teachersLoadMap.values());
 
       if (!fromSocket) {
         socket.emit("teacherUpdate", {

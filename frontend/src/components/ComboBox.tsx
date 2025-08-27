@@ -36,13 +36,15 @@ export default function ComboBox({
   const displayName =
     value === null ? placeHolder : `${value.prefix} ${value.name}`;
 
+  const color = value === null ? "text-gray-500" : "text-foreground"
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
           role="combobox"
-          className="max-w-[200px] justify-between"
+          className={`max-w-[200px] justify-between ${value === null ? "text-gray-500" : "text-foreground"}`}
         >
           {displayName}
         </Button>

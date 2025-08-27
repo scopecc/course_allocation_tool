@@ -50,7 +50,7 @@ const SignInPage = () => {
         data
       );
 
-      if (process.env.ENV === 'development') {
+      if (process.env.NODE_ENV === 'development') {
         console.log("Sign In Response: ", response.data);
       }
 

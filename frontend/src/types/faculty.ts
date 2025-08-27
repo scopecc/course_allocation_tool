@@ -9,4 +9,5 @@ export interface Faculty {
   loadedT: number;
   loadPhd: number;
   loadedPhd: number;
+  slots?: { [key: string]: Set<string> }
 }

@@ -24,9 +24,11 @@ export const SlotInput = ({ value, placeholder, className, type, autoSize, onCom
   return (
     <div
       className={className || "max-w-48"}
-      onBlur={() => {
-        if (localVal !== undefined) {
-          onCommit(localVal);
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget)) {
+          if (localVal !== undefined && localVal !== initValue) {
+            onCommit(localVal);
+          }
         }
       }}
     >
@@ -41,6 +43,7 @@ export const SlotInput = ({ value, placeholder, className, type, autoSize, onCom
         maxWidth="90%"
         minWidth="20%"
         autoSize={autoSize}
+        onClearOptions={() => onCommit([])}
       />
     </div>
   );

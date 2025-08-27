@@ -124,6 +124,11 @@ interface MultiSelectProps
 	 */
 	onValueChange: (value: string[]) => void;
 
+	/**
+	 * Custom user-defined function for callback when all options are cleared
+	 */
+	onClearOptions: () => void;
+
 	/** The default selected values when the component mounts. */
 	defaultValue?: string[];
 
@@ -331,6 +336,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 			deduplicateOptions = false,
 			resetOnDefaultValueChange = true,
 			closeOnSelect = false,
+			onClearOptions,
 			...props
 		},
 		ref
@@ -634,6 +640,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 			if (disabled) return;
 			setSelectedValues([]);
 			onValueChange([]);
+			onClearOptions();
 		};
 
 		const handleTogglePopover = () => {
