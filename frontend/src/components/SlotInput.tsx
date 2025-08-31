@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Input } from "./ui/input";
 import { MultiSelect } from "./multi-select";
 import { TheorySlotOptions, LabSlotOptions } from "@/types/SlotOptions";
 

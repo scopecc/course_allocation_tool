@@ -23,7 +23,6 @@ import DraftTableRow from "./DraftTableRow";
 import { DraftTableHeader } from "./DraftTableHeader";
 import { FilterComponent } from "./FilterComponent";
 import { FacultyMap } from "@/types/FacultyMap";
-import { error } from "node:console";
 import updateTeacherSlots from "@/lib/updateTeacherSlots";
 import checkAndAssignSlots from "@/lib/checkAndAssignSlots";
 
