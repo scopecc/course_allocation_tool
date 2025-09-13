@@ -25,6 +25,7 @@ import {
 	CommandList,
 	CommandSeparator,
 } from "@/components/ui/command";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
 /**
  * Animation types and configurations
@@ -83,6 +84,8 @@ interface MultiSelectOption {
 	icon?: React.ComponentType<{ className?: string }>;
 	/** Whether this option is disabled */
 	disabled?: boolean;
+	/** Teachers blocking this slot (if any)  */
+	teachers?: string[] | undefined;
 	/** Custom styling for the option */
 	style?: {
 		/** Custom badge color */
@@ -1108,6 +1111,12 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 														/>
 													)}
 													<span>{option.label}</span>
+													{option.teachers && option.teachers.length > 0 && (
+														<span className="ml-4 text-xs text-muted-foreground cursor-pointer">
+															{option.teachers.slice(0, 7).join(", ")}
+															{option.teachers.length > 7 && " ..."}
+														</span>
+													)}
 												</CommandItem>
 											);
 										})}

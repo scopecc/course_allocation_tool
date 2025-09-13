@@ -46,7 +46,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
     allFields.map((f) => f.key)
   );
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(15); //  TODO: change this later to be editable
+  const [rowsPerPage, setRowsPerPage] = useState(15);
   const availableTeachersRef = useRef<Faculty[] | undefined>(undefined);
   const facultyMapRef = useRef<FacultyMap | null>(null);
   const [editingName, setEditingName] = useState(false);
@@ -543,6 +543,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
                 filterTeachers={filterTeachersAccordingToRecord}
                 handleTeacherChange={handleTeacherChange}
                 handleSlotChange={handleSlotChange}
+                facultyMap={facultyMapRef.current}
               />
             ))}
           </TableBody>

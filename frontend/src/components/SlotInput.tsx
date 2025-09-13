@@ -6,13 +6,13 @@ import { TheorySlotOptions, LabSlotOptions } from "@/types/SlotOptions";
 interface SlotInputProps {
   value: string[];
   placeholder: string;
+  options: { value: string, label: string, disabled: boolean, teachers?: string[] }[] | undefined;
   className?: string;
-  type: "theory" | "lab";
   autoSize?: boolean | undefined;
   onCommit: (value: string[]) => void;
 };
 
-export const SlotInput = ({ value, placeholder, className, type, autoSize, onCommit }: SlotInputProps) => {
+export const SlotInput = ({ value, placeholder, className, options, autoSize, onCommit }: SlotInputProps) => {
   const initValue = value.length === 1 && value[0] === "" ? undefined : value;
   const [localVal, setLocalVal] = useState<string[] | undefined>(initValue);
 
@@ -32,7 +32,7 @@ export const SlotInput = ({ value, placeholder, className, type, autoSize, onCom
       }}
     >
       <MultiSelect
-        options={type === "theory" ? TheorySlotOptions : LabSlotOptions}
+        options={options || []}
         defaultValue={localVal}
         onValueChange={(value) => setLocalVal(value)}
         placeholder={placeholder}
