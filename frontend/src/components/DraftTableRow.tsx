@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Record } from '@/types/record';
 import ComboBox from "@/components/ComboBox";
 import { TableRow, TableCell } from "@/components/ui/table";
@@ -7,8 +7,6 @@ import { TeacherSelections } from '@/types/teacherSelection';
 import { Field } from '@/types/Field';
 import { SlotInput } from './SlotInput';
 import { LabSlotOptions, TheorySlotOptions } from '@/types/SlotOptions';
-import { FolderOpenDotIcon } from 'lucide-react';
-import { after } from 'next/server';
 import { FacultyMap } from '@/types/FacultyMap';
 
 
@@ -53,7 +51,7 @@ const DraftTableRow = React.memo(function DraftTableRow({
 
 
   function getAvailableSlots(teacherId?: string) {
-    let teachers = new Set<string>();
+    const teachers = new Set<string>();
 
     if (teacherId) {
       teachers.add(teacherId);
@@ -71,7 +69,7 @@ const DraftTableRow = React.memo(function DraftTableRow({
       });
     }
 
-    let slotsToTeachers: { [slot: string]: Set<string> } = {}
+    const slotsToTeachers: { [slot: string]: Set<string> } = {}
 
     teachers.forEach((teacher) => {
       const teacherSlots = facultyMap?.[teacher]?.slots ?? {};

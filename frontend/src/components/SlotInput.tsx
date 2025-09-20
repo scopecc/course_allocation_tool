@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { MultiSelect } from "./multi-select";
-import { TheorySlotOptions, LabSlotOptions } from "@/types/SlotOptions";
 
 
 interface SlotInputProps {
