@@ -12,6 +12,10 @@ if (JWT_SECRET_STRING) {
 }
 
 export async function middleware(request: NextRequest) {
+  // If JWT secret isn't configured, skip auth checks to avoid redirect loops in dev
+  if (!JWT_SECRET_STRING) {
+    return NextResponse.next();
+  }
   const token = request.cookies.get("auth_token")?.value;
 
   const protectedRoutes = ["/dashboard", "/about", "/export", "/draft"];
