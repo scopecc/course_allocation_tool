@@ -7,6 +7,7 @@ import appRouter from "./routes/index.js";
 import { Server } from "socket.io";
 import socketHandlers from "./socket/socketHandlers.js";
 import cookieParser from "cookie-parser";
+import { scheduleMailHealthCheck } from "./jobs/mailHealth.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -30,6 +31,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 connectDB();
+scheduleMailHealthCheck();
 
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url}`);
