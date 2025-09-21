@@ -1,5 +1,8 @@
 import { Router } from "express";
-import { getPreferredProvider } from "../utilities/mailProvider.js";
+import {
+  getPreferredProvider,
+  setPreferredProvider,
+} from "../utilities/mailProvider.js";
 import sendMail from "../utilities/nodemailer.js";
 
 const adminRouter = Router();
@@ -33,6 +36,30 @@ adminRouter.get("/mail/test", async (req, res) => {
     return res
       .status(500)
       .json({ error: "Failed to send test email", message: err.message });
+  }
+});
+
+adminRouter.post("/mail/provider", async (req, res) => {
+  const { provider, password } = req.body || {};
+  const secret = process.env.MAIL_ADMIN_SECRET;
+
+  if (!secret) {
+    return res.status(500).json({ error: "MAIL_ADMIN_SECRET not configured" });
+  }
+  if (password !== secret) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  if (provider !== "nodemailer" && provider !== "resend") {
+    return res.status(400).json({ error: "Invalid provider" });
+  }
+
+  try {
+    await setPreferredProvider(provider);
+    return res.status(200).json({ provider, status: "updated" });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ error: "Failed to set provider", message: err.message });
   }
 });
 
