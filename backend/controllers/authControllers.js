@@ -28,7 +28,7 @@ async function signIn(req, res) {
       const updatedUser = await Users.findOneAndUpdate(
         { email: existingUser.email },
         { otp: otp },
-        { new: true }
+        { new: true },
       );
 
       if (!updatedUser) {
@@ -43,7 +43,7 @@ async function signIn(req, res) {
         await sendMail(
           existingUser.email,
           "OTP for Sign In",
-          `Your OTP for sign in is ${otp}. Please use this OTP to complete your sign in process.`
+          `Your OTP for sign in is ${otp}. Please use this OTP to complete your sign in process.`,
         );
         return res.status(200).json({
           status: "success",
@@ -105,13 +105,14 @@ async function verifyOtp(req, res) {
       process.env.JWT_SECRET,
       {
         expiresIn: "100m",
-      }
+      },
     );
     res.cookie("auth_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: "none",
       maxAge: 100 * 60 * 1000, // 100 minutes for now
+      domain: ".scopevitcc.in",
       path: "/",
     });
     return res.status(200).json({
