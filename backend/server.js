@@ -51,5 +51,7 @@ io.on("connection", (socket) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Server + Socket running on port ${PORT}`);
+  console.log(
+    `Server + Socket running on port ${PORT} for course allocation app`
+  );
 });
