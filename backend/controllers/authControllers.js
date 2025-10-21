@@ -107,14 +107,20 @@ async function verifyOtp(req, res) {
         expiresIn: "100m",
       },
     );
-    res.cookie("auth_token", token, {
+    const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
-      maxAge: 100 * 60 * 1000, // 100 minutes for now
-      domain: ".scopevitcc.in",
+      maxAge: 100 * 60 * 1000,
       path: "/",
-    });
+    };
+    if (process.env.NODE_ENV === "production") {
+      cookieOptions.secure = true;
+      cookieOptions.sameSite = "none";
+      cookieOptions.domain = process.env.COOKIE_DOMAIN;
+    } else {
+      cookieOptions.secure = false;
+      cookieOptions.sameSite = "lax";
+    }
+    res.cookie("auth_token", token, cookieOptions);
     return res.status(200).json({
       status: "success",
       message: "OTP verified successfully",

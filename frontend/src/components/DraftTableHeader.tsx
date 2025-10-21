@@ -44,6 +44,7 @@ export function DraftTableHeader({ allFields, visibleFields, sortBy, sortDirecti
       )}
 
       <TableHead>Slot</TableHead>
+      <TableHead>Total Slots</TableHead>
       <TableHead>FN Teachers</TableHead>
       <TableHead>AN Teachers</TableHead>
     </TableRow>

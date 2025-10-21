@@ -9,6 +9,6 @@ export interface Draft {
   loadFileName: string;
   recordCount: number;
   facultyCount: number;
-  records: [Record];
-  faculty: [Faculty];
+  records: Array<Record>;
+  faculty: Array<Faculty>;
 }

@@ -27,7 +27,8 @@ const socketHandlers = (io, socket) => {
       oldTeacherId = record.forenoonTeachers[index].teacher?.toString();
       record.forenoonTeachers[index].teacher = newTeacherId;
     } else if (slotType === 'an') {
-      oldTeacherId = record.afternoonTeachers[index].teacher?.toString();
+      const teacherObj = record.afternoonTeachers[index];
+      oldTeacherId = teacherObj?.teacher?.toString() || null;
       record.afternoonTeachers[index].teacher = newTeacherId;
     }
 
@@ -114,10 +115,75 @@ const socketHandlers = (io, socket) => {
     });
   });
 
+  socket.on("addSlot", async ({ senderSocketId, senderDraftId, recordId, slotType }) => {
+    console.log("Adding a new slot: ", { senderDraftId, recordId, slotType });
+    try {
+      const draft = await Draft.findById(senderDraftId);
+      if (!draft) return;
+
+      const record = draft.records.find(r => r._id.toString() === recordId);
+      if (!record) return;
+
+      if (slotType === "fn") {
+        record.numOfForenoonSlots += 1;
+        record.forenoonTeachers.push({ teacher: null, theorySlot: "", labSlot: "" });
+      } else if (slotType === "an") {
+        record.numOfAfternoonSlots += 1;
+        record.afternoonTeachers.push({ teacher: null, theorySlot: "", labSlot: "" });
+      } else {
+        return;
+      }
+
+      await draft.save();
+
+      socket.to(senderDraftId).emit("slotAdded", {
+        senderSocketId,
+        senderDraftId,
+        recordId,
+        slotType,
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  });
+
+  socket.on("removeSlot", async({ senderSocketId, senderDraftId, recordId, slotType, key }) => {
+    console.log("Removing slot:", { senderDraftId, recordId, slotType});
+
+    try {
+      const draft = await Draft.findById(senderDraftId);
+      if (!draft) return;
+
+      const record = draft.records.find(r => r._id.toString() === recordId);
+      if (!record) return;
+
+      if (slotType === "fn") {
+        record.forenoonTeachers.splice(key, 1);
+        record.numOfForenoonSlots -= 1
+      } else if (slotType === "an") {
+        record.afternoonTeachers.splice(key, 1);
+        record.numOfAfternoonSlots -= 1
+      }
+
+      await draft.save();
+
+      socket.to(senderDraftId).emit("slotRemoved", {
+        senderSocketId,
+        senderDraftId,
+        recordId,
+        slotType,
+        key,
+      });
+    } catch (err) {
+      console.error("Error removing slot:", err);
+    }
+  });
+
   socket.on("disconnect", () => {
     console.log("Client disconnected: ", socket.id);
   });
 
 };
+
 
 export default socketHandlers;

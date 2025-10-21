@@ -39,11 +39,6 @@ export function FilterComponent({ columns, onFilterSubmit }: FilterComponentProp
         onChange={(e) => setSelectedValue(e.target.value.toString())}
       />
 
-      <Button
-        onClick={() => onFilterSubmit(selectedColumn, selectedValue)}
-      >
-        Filter
-      </Button>
 
     </div>
   )
