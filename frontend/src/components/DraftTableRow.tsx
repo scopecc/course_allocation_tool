@@ -144,7 +144,7 @@ const DraftTableRow = React.memo(function DraftTableRow({
           autoSize={false}
         />
       </TableCell>
-      <TableCell>{rec.numOfForenoonSlots + rec.numOfAfternoonSlots}</TableCell>
+      <TableCell>{forenoonSlots.length + afternoonSlots.length}</TableCell>
 
       {/* Forenoon Teacher Selection Inputs */}
       <TableCell>

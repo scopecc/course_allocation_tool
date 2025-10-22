@@ -491,6 +491,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
             rec.forenoonTeachers.length > 0
               ? rec.forenoonTeachers
               : Array.from({ length: rec.numOfForenoonSlots }).map(() => ({
+                  _id: uuidv4(),
                   teacher: "",
                   theorySlot: "",
                   labSlot: "",
@@ -499,6 +500,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
             rec.afternoonTeachers.length > 0
               ? rec.afternoonTeachers
               : Array.from({ length: rec.numOfAfternoonSlots }).map(() => ({
+                  _id: uuidv4(),
                   teacher: "",
                   theorySlot: "",
                   labSlot: "",

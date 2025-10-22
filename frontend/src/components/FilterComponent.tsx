@@ -3,8 +3,8 @@ import { Field } from "@/types/Field";
 import { FieldKey } from "@/types/recordFieldKey";
 import { ArrowRight } from "lucide-react";
 import { useState } from "react";
-import { Input } from "./ui/input";
-import { Button } from "./ui";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui";
 
 interface FilterComponentProps {
   columns: Field[];
@@ -39,6 +39,7 @@ export function FilterComponent({ columns, onFilterSubmit }: FilterComponentProp
         onChange={(e) => setSelectedValue(e.target.value.toString())}
       />
 
+      <Button onClick={() => onFilterSubmit(selectedColumn, selectedValue)}>Filter</Button>
 
     </div>
   )
