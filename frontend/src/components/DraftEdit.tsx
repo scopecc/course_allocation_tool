@@ -127,7 +127,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
     (
       recordId: string,
       slotType: "fn" | "an",
-      index: number,
+      id: string,
       field: "theorySlot" | "labSlot",
       newValue: string,
       fromSocket: boolean
@@ -136,6 +136,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
       if (!prevRecord) return;
 
       const updatedSlot = [...prevRecord[slotType]];
+
       if (field === "theorySlot") {
         // for theory slots, update the theory slot for all the teachers
         for (let i = 0; i < updatedSlot.length; i++) {
@@ -143,8 +144,13 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
         }
       } else if (field === "labSlot") {
         // for lab slots, update just the one teacher
-        const updatedAssignment = { ...updatedSlot[index], labSlot: newValue };
-        updatedSlot[index] = updatedAssignment;
+        const slotIndex = updatedSlot.findIndex((slot) => slot._id === id);
+        if (slotIndex === -1) return;
+
+        updatedSlot[slotIndex] = {
+          ...updatedSlot[slotIndex],
+          labSlot: newValue,
+        };
       }
 
       setTeacherSelections((prev) => ({
@@ -156,7 +162,9 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
       }));
 
       // Check if the slot already exists (in another record) for the teacher
-      const oldTeacherId = teacherSelections[recordId]?.[slotType]?.[index]?.teacher;
+      const oldTeacherId =
+        teacherSelections[recordId]?.[slotType]?.find((s) => s._id === id)?.teacher;
+      if (!oldTeacherId) return;
       checkAndAssignSlots(facultyMapRef.current, recordId, oldTeacherId, newValue, (teacherName, conflicts) => {
         toast.error(`${teacherName} already has slot(s) ${conflicts.join(" ")} assigned.`);
       });
@@ -167,7 +175,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
           senderDraftId: draftId,
           recordId: recordId,
           slotType: slotType,
-          index: index,
+          id: id,
           field: field,
           newSelection: newValue,
         });
@@ -189,19 +197,23 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
       recordId: string,
       recordP: number,
       slotType: "fn" | "an",
-      index: number,
+      id: string,
       newTeacherId: string,
       fromSocket: boolean
     ) => {
       setTeacherSelections((prev) => {
         const recordSlot = prev[recordId]?.[slotType] || [];
         const updatedSlot = [...recordSlot];
-        const oldTeacherId = updatedSlot[index]?.teacher;
+        const slotIndex = updatedSlot.findIndex((slot) => slot._id === id);
+        if (slotIndex === -1) return prev;
 
-        if (!updatedSlot[index] || oldTeacherId === newTeacherId) return prev;
+        const oldTeacherId = updatedSlot[slotIndex]?.teacher;
+        if (oldTeacherId === newTeacherId) return prev;
 
-        updatedSlot[index] = {
-          ...updatedSlot[index],
+        if (!updatedSlot[slotIndex] || oldTeacherId === newTeacherId) return prev;
+
+        updatedSlot[slotIndex] = {
+          ...updatedSlot[slotIndex],
           teacher: newTeacherId,
         };
 
@@ -215,18 +227,18 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
       });
 
       // add the set of slots to the newly selected teacher, remove the set of slots from the old teacher (if any)
-      const oldTeacher = teacherSelections[recordId]?.[slotType]?.[index]?.teacher;
-      const currentSlot = teacherSelections[recordId]?.[slotType]?.[index] ?? null;
+      const recordSlot = teacherSelections[recordId]?.[slotType] || [];
+      const currentSlot = recordSlot.find((slot) => slot._id === id) ?? null;
+       const oldTeacher = currentSlot?.teacher;
       if (currentSlot) {
         updateTeacherSlots(teachersMap, recordId, oldTeacher, newTeacherId, currentSlot);
       }
 
       // efficiently update teacher load counts
       const teachersLoadMap = new Map(availableTeachersRef.current?.map((t) => [t._id, { ...t }]));
-      const oldTeacherId = teacherSelections[recordId]?.[slotType]?.[index]?.teacher;
 
-      if (oldTeacherId && teachersLoadMap.has(oldTeacherId)) {
-        const t = teachersLoadMap.get(oldTeacherId)!;
+      if (oldTeacher && teachersLoadMap.has(oldTeacher)) {
+        const t = teachersLoadMap.get(oldTeacher)!;
         t.loadedT = Math.max(0, t.loadedT - 1);
         if (recordP > 0) t.loadedL = Math.max(0, t.loadedL - 1);
       }
@@ -246,12 +258,12 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
           recordId: recordId,
           recordP: recordP,
           slotType: slotType,
-          index: index,
+          id: id,
           newTeacherId: newTeacherId,
         });
       }
     },
-    [teacherSelections, draftId]
+    [draftId]
   );
 
   // function to add a slot to a record using the + button
@@ -260,6 +272,11 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
       console.log("teacherSelections: ", teacherSelections);
       setTeacherSelections((prev) => {
         const updated = structuredClone(prev);
+
+        if (!updated[recordId]) {
+          updated[recordId] = { fn : [], an: [] }
+        }
+
         if (slotType === "fn") {
           updated[recordId].fn.push({
             _id: uuidv4(),
@@ -278,30 +295,6 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
         return updated;
       });
 
-      setDraft((prevDraft) => {
-        if (!prevDraft) return prevDraft;
-
-        // create a deep copy of the draft
-        const updatedDraft = { ...prevDraft };
-        const records = [...(prevDraft.records as unknown as Record[])];
-        updatedDraft.records = records.map((record) => {
-          if (record._id !== recordId) return record;
-
-          // clone the record so we don’t mutate directly
-          const updatedRecord = { ...record };
-
-          if (slotType === "fn") {
-            updatedRecord.numOfForenoonSlots += 1;
-          } else if (slotType === "an") {
-            updatedRecord.numOfAfternoonSlots += 1;
-          }
-
-          return updatedRecord;
-        });
-
-        return updatedDraft;
-      });
-
       if (!fromSocket) {
         socket.emit("addSlot", {
           senderSocketId: socket.id,
@@ -311,18 +304,45 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
         });
       }
     },
-    [draftId, setDraft, setTeacherSelections]
+    [draftId, teacherSelections]
   );
 
   const handleRemoveSlot = useCallback(
-    (recordId: string, slotType: "fn" | "an", key: number, fromSocket: boolean) => {
+    (recordId: string, slotType: "fn" | "an", id: string, fromSocket: boolean) => {
+      const slotToRemove = teacherSelections[recordId]?.[slotType].find(
+        (slot) => slot._id === id
+      );
+      const teacherId = slotToRemove?.teacher;
+
+      if (teacherId) {
+        const record = draft?.records.find((r) => (r._id === recordId));
+        const teachersLoadMap = new Map(
+          availableTeachersRef.current?.map((t) => [t._id, {...t}])
+        );
+
+        const teacherToUpdate = teachersLoadMap.get(teacherId);
+        if (teacherToUpdate) {
+          teacherToUpdate.loadedT = Math.max(0, teacherToUpdate.loadedT - 1);
+          if (record && record.P > 0) {
+            teacherToUpdate.loadedL = Math.max(0, teacherToUpdate.loadedL - 1);
+          }
+          teachersLoadMap.set(teacherId, teacherToUpdate);
+        }
+        availableTeachersRef.current = Array.from(teachersLoadMap.values());
+
+        if (slotToRemove) {
+          updateTeacherSlots(facultyMapRef.current, recordId, teacherId, "", slotToRemove);
+        }
+      }
+
       setTeacherSelections((prev) => {
         const updated = structuredClone(prev);
 
         if (!updated[recordId]) return prev;
+        if (!updated[recordId][slotType]) return prev;
 
         const slots = updated[recordId][slotType] || [];
-        const filteredSlots = slots.filter((_, item) => item !== key);
+        const filteredSlots = slots.filter((slot) => slot._id !== id);
         updated[recordId] = {
           ...updated[recordId],
           [slotType]: filteredSlots
@@ -331,40 +351,17 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
         return updated;
       });
 
-      console.log("Removing slot k=", key);
-
-      setDraft((prevDraft) => {
-        if (!prevDraft) return prevDraft;
-
-        const updatedDraft = { ...prevDraft };
-        updatedDraft.records = updatedDraft.records.map((record) => {
-          if (record._id !== recordId) return record;
-
-          const updatedRecord = { ...record };
-
-          if (slotType === "fn") {
-            updatedRecord.numOfForenoonSlots = Math.max(0, updatedRecord.numOfForenoonSlots - 1);
-          } else {
-            updatedRecord.numOfAfternoonSlots = Math.max(0, updatedRecord.numOfAfternoonSlots - 1);
-          }
-
-          return updatedRecord;
-        });
-
-        return updatedDraft;
-      });
-
       if (!fromSocket) {
         socket.emit("removeSlot", {
           senderSocketId: socket.id,
           senderDraftId: draftId,
           recordId: recordId,
           slotType: slotType,
-          key: key,
+          id: id,
         });
       }
     },
-    [draftId, setDraft, setTeacherSelections]
+    [draftId, teacherSelections, draft?.records]
   );
 
   // socket updates useEffect
@@ -380,7 +377,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
       senderDraftId,
       recordId,
       slotType,
-      index,
+      id,
       field,
       newSelection,
     }: {
@@ -388,13 +385,13 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
       senderDraftId: string;
       recordId: string;
       slotType: "fn" | "an";
-      index: number;
+      id: string;
       field: "labSlot" | "theorySlot";
       newSelection: string;
     }): void => {
       if (senderSocketId === socket.id) return;
       if (draftId === senderDraftId) {
-        handleSlotChange(recordId, slotType, index, field, newSelection, true);
+        handleSlotChange(recordId, slotType, id, field, newSelection, true);
       }
     };
 
@@ -404,7 +401,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
       recordId,
       recordP,
       slotType,
-      index,
+      id,
       newTeacherId,
     }: {
       senderSocketId: string;
@@ -412,12 +409,12 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
       recordId: string;
       recordP: number;
       slotType: "fn" | "an";
-      index: number;
+      id: string;
       newTeacherId: string;
     }): void => {
       if (senderSocketId === socket.id) return;
       if (draftId === senderDraftId) {
-        handleTeacherChange(recordId, recordP, slotType, index, newTeacherId, true);
+        handleTeacherChange(recordId, recordP, slotType, id, newTeacherId, true);
       }
     };
 
@@ -444,17 +441,17 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
       senderDraftId,
       recordId,
       slotType,
-      key,
+      id,
     }: {
       senderSocketId: string;
       senderDraftId: string;
       recordId: string;
       slotType: "fn" | "an";
-      key: number;
+      id: string;
     }): void => {
       if (senderSocketId === socket.id) return;
       if (draftId === senderDraftId) {
-        handleRemoveSlot(recordId, slotType, key, true);
+        handleRemoveSlot(recordId, slotType, id, true);
       }
     };
 

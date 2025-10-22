@@ -11,7 +11,7 @@ const slotAssignmentSchema = new mongoose.Schema({
   labSlot: {
     type: String,
   },
-});
+}, {_id: true});
 
 // exporting as schema to embed in records
 export default slotAssignmentSchema;

@@ -1,4 +1,5 @@
 import { Draft } from "../models/draftSchema.js";
+import { Types } from "mongoose";
 import archiver from 'archiver';
 import { extractRecords, extractFacultiesAndLoads } from "../utilities/extractFromSheet.js";
 import { generateMainFile, generateAllocFile } from "../utilities/exportToSheet.js";
@@ -22,11 +23,13 @@ async function createDraft(req, res) {
       .map((record) => ({
         ...record,
         forenoonTeachers: Array.from({ length: record.numOfForenoonSlots }, () => ({
+          _id: new Types.ObjectId(),
           teacher: null,
           theorySlot: "",
           labSlot: "",
         })),
         afternoonTeachers: Array.from({ length: record.numOfAfternoonSlots }, () => ({
+          _id: new Types.ObjectId(),
           teacher: null,
           theorySlot: "",
           labSlot: "",

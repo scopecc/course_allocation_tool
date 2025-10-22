@@ -9,7 +9,7 @@ import { SlotInput } from "./SlotInput";
 import { LabSlotOptions, TheorySlotOptions } from "@/types/SlotOptions";
 import { FacultyMap } from "@/types/FacultyMap";
 import { Button } from "./ui";
-import { PlusIcon, XCircleIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import DeleteSlotButton from "./DeleteSlotButton";
 
@@ -31,27 +31,39 @@ const DraftTableRow = React.memo(function DraftTableRow({
   visibleFields: string[];
   teacherSelections: TeacherSelections;
   availableTeachers: Faculty[] | undefined;
-  filterTeachers: (availableTeachers: Faculty[] | undefined, rec: Record, slotType: "fn" | "an") => Faculty[];
+  filterTeachers: (
+    availableTeachers: Faculty[] | undefined,
+    rec: Record,
+    slotType: "fn" | "an"
+  ) => Faculty[];
   handleTeacherChange: (
     recordId: string,
     recordP: number,
     slotType: "fn" | "an",
-    index: number,
+    id: string,
     newTeacherId: string,
     fromSocket: boolean
   ) => void;
   handleSlotChange: (
     recordId: string,
     slotType: "fn" | "an",
-    index: number,
+    id: string,
     field: "theorySlot" | "labSlot",
     newValue: string,
     fromSocket: boolean
   ) => void;
   facultyMap: FacultyMap | null;
   onAddSlot: (recordId: string, slotType: "fn" | "an", fromSocket: boolean) => void;
-  onRemoveSlot: (recordId: string, slotType: "fn" | "an", index: number, fromSocket: boolean) => void;
+  onRemoveSlot: (
+    recordId: string,
+    slotType: "fn" | "an",
+    id: string,
+    fromSocket: boolean
+  ) => void;
 }) {
+  const forenoonSlots = teacherSelections[rec._id]?.fn || [];
+  const afternoonSlots = teacherSelections[rec._id]?.an || [];
+
   function getAvailableSlots(teacherId?: string) {
     const teachers = new Set<string>();
 
@@ -126,7 +138,9 @@ const DraftTableRow = React.memo(function DraftTableRow({
           value={teacherSelections[rec._id]?.fn[0]?.theorySlot.split(" + ") || []}
           options={theorySlotOptions || []}
           placeholder="Enter Theory Slot"
-          onCommit={(value) => handleSlotChange(rec._id, "fn", 0, "theorySlot", value.join(" + "), false)}
+          onCommit={(value) =>
+            handleSlotChange(rec._id, "fn", "", "theorySlot", value.join(" + "), false)
+          }
           autoSize={false}
         />
       </TableCell>
@@ -137,7 +151,7 @@ const DraftTableRow = React.memo(function DraftTableRow({
         <div className="flex flex-col gap-y-2">
           <div className="flex flex-row justify-center items-center">
             <div className="items-center text-muted-foreground border-2 px-2 rounded-md">
-              {rec.numOfForenoonSlots} {rec.numOfForenoonSlots === 1 ? "slot" : "slots"}
+              {forenoonSlots.length} {forenoonSlots.length === 1 ? "slot" : "slots"}
             </div>
             <Tooltip>
               <TooltipTrigger>
@@ -152,33 +166,39 @@ const DraftTableRow = React.memo(function DraftTableRow({
               <TooltipContent>Add a new Slot</TooltipContent>
             </Tooltip>
           </div>
-          {Array.from({ length: rec.numOfForenoonSlots }).map((_, k) => (
-            <div key={k} className="relative group flex flex-col gap-y-2">
-              <DeleteSlotButton onConfirm={() => onRemoveSlot(rec._id, "fn", k, false)} />
+          {/*{Array.from({ length: rec.numOfForenoonSlots }).map((_, k) => (*/}
+          {teacherSelections[rec._id]?.fn.map((slot) => (
+            <div key={slot._id} className="relative group flex flex-col gap-y-2">
+              <DeleteSlotButton onConfirm={() => onRemoveSlot(rec._id, "fn", slot._id, false)} />
               <ComboBox
                 options={filterTeachers(availableTeachers, rec, "fn")}
-                value={
-                  availableTeachers?.find((teacher) => teacher._id == teacherSelections[rec._id]?.fn[k]?.teacher) ||
-                  null
-                }
-                onChange={(val) => handleTeacherChange(rec._id, rec.P, "fn", k, val, false)}
+                value={availableTeachers?.find((teacher) => teacher._id == slot.teacher) || null}
+                onChange={(val) => handleTeacherChange(rec._id, rec.P, "fn", slot._id, val, false)}
                 placeHolder="Select FN Teacher..."
               />
-              {rec.P > 0 && teacherSelections[rec._id]?.fn[k] !== undefined
+              {rec.P > 0 && slot.teacher
                 ? (() => {
                     // separate lab slot options specific to each teacher
-                    const teacherId = teacherSelections[rec._id]?.fn[k];
                     const labSlotsForFNTeacher = buildSlotOptions(
                       LabSlotOptions,
-                      getAvailableSlots(teacherId.teacher || "")
+                      getAvailableSlots(slot.teacher || "")
                     );
                     return (
                       <SlotInput
                         className="max-w-48"
-                        value={teacherSelections[rec._id]?.fn[k].labSlot?.split(" + ") || []}
+                        value={slot.labSlot?.split(" + ") || []}
                         options={labSlotsForFNTeacher}
                         placeholder="Enter Lab Slot"
-                        onCommit={(value) => handleSlotChange(rec._id, "fn", k, "labSlot", value.join(" + "), false)}
+                        onCommit={(value) =>
+                          handleSlotChange(
+                            rec._id,
+                            "fn",
+                            slot._id,
+                            "labSlot",
+                            value.join(" + "),
+                            false
+                          )
+                        }
                       />
                     );
                   })()
@@ -193,7 +213,7 @@ const DraftTableRow = React.memo(function DraftTableRow({
         <div className="flex flex-col py-5 gap-y-2">
           <div className="flex flex-row justify-center items-center">
             <div className="items-center text-muted-foreground border-2 px-2 rounded-md">
-              {rec.numOfAfternoonSlots} {rec.numOfAfternoonSlots === 1 ? "slot" : "slots"}
+              {afternoonSlots.length} {afternoonSlots.length === 1 ? "slot" : "slots"}
             </div>
             <Tooltip>
               <TooltipTrigger>
@@ -208,32 +228,37 @@ const DraftTableRow = React.memo(function DraftTableRow({
               <TooltipContent>Add a new Slot</TooltipContent>
             </Tooltip>
           </div>
-          {Array.from({ length: rec.numOfAfternoonSlots }).map((_, k) => (
-            <div key={k} className="relative group flex flex-col gap-y-2">
-              <DeleteSlotButton className="-right-2" onConfirm={() => onRemoveSlot(rec._id, "an", k, false)} />
+          {teacherSelections[rec._id]?.an.map((slot) => (
+            <div key={slot._id} className="relative group flex flex-col gap-y-2">
+              <DeleteSlotButton
+                className="-right-2"
+                onConfirm={() => onRemoveSlot(rec._id, "an", slot._id, false)}
+              />
               <ComboBox
                 options={filterTeachers(availableTeachers, rec, "an")}
                 value={
-                  availableTeachers?.find((teacher) => teacher._id == teacherSelections[rec._id]?.an[k]?.teacher) ||
-                  null
+                  availableTeachers?.find(
+                    (teacher) => teacher._id == slot.teacher
+                  ) || null
                 }
-                onChange={(val) => handleTeacherChange(rec._id, rec.P, "an", k, val, false)}
+                onChange={(val) => handleTeacherChange(rec._id, rec.P, "an", slot._id, val, false)}
                 placeHolder="Select AN Teacher..."
               />
-              {rec.P > 0 && teacherSelections[rec._id]?.an[k] !== undefined
+              {rec.P > 0 && slot.teacher
                 ? (() => {
                     // separate lab slot options specific to each teacher
-                    const teacherId = teacherSelections[rec._id]?.an[k];
                     const labSlotsForANTeacher = buildSlotOptions(
                       LabSlotOptions,
-                      getAvailableSlots(teacherId.teacher || "")
+                      getAvailableSlots(slot.teacher || "")
                     );
                     return (
                       <SlotInput
                         placeholder="Enter Lab Slot"
-                        value={teacherSelections[rec._id]?.an[k].labSlot?.split(" + ") || []}
+                        value={slot.labSlot?.split(" + ") || []}
                         options={labSlotsForANTeacher}
-                        onCommit={(value) => handleSlotChange(rec._id, "an", k, "labSlot", value.join(" + "), false)}
+                        onCommit={(value) =>
+                          handleSlotChange(rec._id, "an", slot._id, "labSlot", value.join(" + "), false)
+                        }
                         className="max-w-48"
                       />
                     );

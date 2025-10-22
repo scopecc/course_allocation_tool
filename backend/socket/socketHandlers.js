@@ -8,29 +8,28 @@ const socketHandlers = (io, socket) => {
     console.log(io.sockets.adapter.rooms.get(draftId));
   });
 
-  socket.on("teacherUpdate", async ({ senderSocketId, senderDraftId, recordId, recordP, slotType, index, newTeacherId }) => {
-    console.log("teacher updates received: ", newTeacherId, " from: ", senderSocketId);
+  socket.on("teacherUpdate", async ({ senderSocketId, senderDraftId, recordId, recordP, slotType, id, newTeacherId }) => {
+    console.log("teacher updates received: ", newTeacherId, " from: ", senderSocketId, "with id: ", id);
     const draft = await Draft.findById(senderDraftId);
-
     if (!draft) {
-      console.log('Error: Draft does not exist!');
+      console.log('Error: Draft does not exist.');
       return;
     }
 
     // find record and update teacher for course
-    const record = draft.records.find((r) => r._id.toString() === recordId);
+    const record = draft.records.id(recordId);
     if (!record) return;
 
-    let oldTeacherId = null;
-
-    if (slotType === 'fn') {
-      oldTeacherId = record.forenoonTeachers[index].teacher?.toString();
-      record.forenoonTeachers[index].teacher = newTeacherId;
-    } else if (slotType === 'an') {
-      const teacherObj = record.afternoonTeachers[index];
-      oldTeacherId = teacherObj?.teacher?.toString() || null;
-      record.afternoonTeachers[index].teacher = newTeacherId;
+    let slot;
+    if (slotType === "fn") {
+      slot = record.forenoonTeachers.id(id);
+    } else if (slotType === "an") {
+      slot = record.afternoonTeachers.id(id);
     }
+    if (!slot) return;
+
+    let oldTeacherId = slot.teacher;
+    slot.teacher = newTeacherId;
 
     // find teacher and update teacher's load values
     if (oldTeacherId) {
@@ -43,7 +42,7 @@ const socketHandlers = (io, socket) => {
       }
     }
 
-    const newFaculty = draft.faculty.find((fac) => fac._id.toString() === newTeacherId);
+    const newFaculty = slot.teacher;
     if (newFaculty) {
       newFaculty.loadedT += 1;
       if (recordP > 0) {
@@ -59,12 +58,12 @@ const socketHandlers = (io, socket) => {
       recordId,
       recordP,
       slotType,
-      index,
+      id,
       newTeacherId
     });
   });
 
-  socket.on("slotUpdate", async ({ senderSocketId, senderDraftId, recordId, slotType, index, field, newSelection }) => {
+  socket.on("slotUpdate", async ({ senderSocketId, senderDraftId, recordId, slotType, id, field, newSelection }) => {
     console.log("slot updates received: ", newSelection);
     const draft = await Draft.findById(senderDraftId);
 
@@ -73,33 +72,27 @@ const socketHandlers = (io, socket) => {
       return;
     }
 
-    const record = draft.records.find((record) => record._id.toString() === recordId);
+    const record = draft.records.id(recordId);
     if (!record) return;
 
-    if (field === 'theorySlot') {
-      for (let i = 0; i < record.forenoonTeachers.length; ++i) {
-        record.forenoonTeachers[i].theorySlot = newSelection;
-      }
-
+    if (field === "theorySlot") {
+      // Update theorySlot for ALL slots (FN + AN)
+      record.forenoonTeachers.forEach((slot) => {
+        slot.theorySlot = newSelection;
+      })
       const updatedValue = newSelection.replaceAll('1', '2');
-      for (let i = 0; i < record.afternoonTeachers.length; ++i) {
-        record.afternoonTeachers[i].theorySlot = updatedValue;
+      record.afternoonTeachers.forEach((slot) => {
+        slot.theorySlot = updatedValue;
+      })
+    } else if (field === "labSlot") {
+      // Update only this specific slot
+      let slot;
+      if (slotType === "fn"){
+        slot = record.forenoonTeachers.id(id);
+      } else if (slotType === "an"){
+        slot = record.afternoonTeachers.id(id);
       }
-
-    } else if (field === 'labSlot') {
-      const teacherList = slotType === "fn" ? record.forenoonTeachers : record.afternoonTeachers;
-      if (teacherList[index]) {
-        teacherList[index].labSlot = newSelection;
-      } else {
-        console.log('Error: Draft not initialized properly.');
-        return;
-      }
-
-      if (slotType === 'fn') {
-        record.forenoonTeachers = teacherList;
-      } else if (slotType === 'an') {
-        record.afternoonTeachers = teacherList;
-      }
+      if (slot) slot.labSlot = newSelection;
     }
 
     await draft.save();
@@ -109,7 +102,7 @@ const socketHandlers = (io, socket) => {
       senderDraftId,
       recordId,
       slotType,
-      index,
+      id,
       field,
       newSelection,
     });
@@ -147,7 +140,7 @@ const socketHandlers = (io, socket) => {
     }
   });
 
-  socket.on("removeSlot", async({ senderSocketId, senderDraftId, recordId, slotType, key }) => {
+  socket.on("removeSlot", async({ senderSocketId, senderDraftId, recordId, slotType, id }) => {
     console.log("Removing slot:", { senderDraftId, recordId, slotType});
 
     try {
@@ -158,11 +151,11 @@ const socketHandlers = (io, socket) => {
       if (!record) return;
 
       if (slotType === "fn") {
-        record.forenoonTeachers.splice(key, 1);
-        record.numOfForenoonSlots -= 1
+        record.forenoonTeachers.id(id)?.deleteOne();
+        record.numOfForenoonSlots -= 1;
       } else if (slotType === "an") {
-        record.afternoonTeachers.splice(key, 1);
-        record.numOfAfternoonSlots -= 1
+        record.afternoonTeachers.id(id)?.deleteOne();
+        record.numOfAfternoonSlots -= 1;
       }
 
       await draft.save();
@@ -172,7 +165,7 @@ const socketHandlers = (io, socket) => {
         senderDraftId,
         recordId,
         slotType,
-        key,
+        id,
       });
     } catch (err) {
       console.error("Error removing slot:", err);
