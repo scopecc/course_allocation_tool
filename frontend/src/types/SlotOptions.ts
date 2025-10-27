@@ -1,43 +1,26 @@
 const TheorySlotOptions = [
-  { value: "A1", label: "A1" },
-  { value: "A2", label: "A2" },
-  { value: "B1", label: "B1" },
-  { value: "B2", label: "B2" },
-  { value: "C1", label: "C1" },
-  { value: "C2", label: "C2" },
-  { value: "D1", label: "D1" },
-  { value: "D2", label: "D2" },
-  { value: "E1", label: "E1" },
-  { value: "E2", label: "E2" },
-  { value: "F1", label: "F1" },
-  { value: "F2", label: "F2" },
-  { value: "G1", label: "G1" },
-  { value: "G2", label: "G2" },
+  { label: "A", value: "A1" },
+  { label: "B", value: "B1" },
+  { label: "C", value: "C1" },
+  { label: "D", value: "D1" },
+  { label: "E", value: "E1" },
+  { label: "F", value: "F1" },
+  { label: "G", value: "G1" },
 
   // TAx type slots
-  { value: "TA1", label: "TA1" },
-  { value: "TA2", label: "TA2" },
-  { value: "TB1", label: "TB1" },
-  { value: "TB2", label: "TB2" },
-  { value: "TC1", label: "TC1" },
-  { value: "TC2", label: "TC2" },
-  { value: "TD1", label: "TD1" },
-  { value: "TD2", label: "TD2" },
-  { value: "TE1", label: "TE1" },
-  { value: "TE2", label: "TE2" },
-  { value: "TF1", label: "TF1" },
-  { value: "TF2", label: "TF2" },
-  { value: "TG1", label: "TG1" },
+  { label: "A + TA", value: "A1 + TA1" },
+  { label: "B + TB", value: "B1 + TB1" },
+  { label: "C + TC", value: "C1 + TC1" },
+  { label: "D + TD", value: "D1 + TD1" },
+  { label: "E + TE", value: "E1 + TE1" },
+  { label: "F + TF", value: "F1 + TF1" },
+  { label: "G + TG", value: "G1 + TG1" },
 
   // TAAx type slots
-  { value: "TAA1", label: "TAA1" },
-  { value: "TAA2", label: "TAA2" },
-  { value: "TBB1", label: "TBB1" },
-  { value: "TBB2", label: "TBB2" },
-  { value: "TCC1", label: "TCC1" },
-  { value: "TCC2", label: "TCC2" },
-  { value: "TDD1", label: "TDD1" },
-  { value: "TDD2", label: "TDD2" },
+  { label: "A + TA + TAA", value: "A1 + TA1 + TAA1" },
+  { label: "B + TB + TBB", value: "B1 + TB1 + TBB1" },
+  { label: "C + TC + TCC", value: "C1 + TC1 + TCC1" },
+  { label: "D + TD + TDD", value: "D1 + TD1 + TDD1" },
 
 ];
 
@@ -106,4 +89,3 @@ const LabSlotOptions = [
 ];
 
 export { TheorySlotOptions, LabSlotOptions }
-

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback } from "react";
 import { Record } from "@/types/record";
 import ComboBox from "@/components/ComboBox";
 import { TableRow, TableCell } from "@/components/ui/table";
@@ -12,6 +12,57 @@ import { Button } from "./ui";
 import { PlusIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import DeleteSlotButton from "./DeleteSlotButton";
+
+// Helper function for filtering theory slot options based on L and T values.
+const getFilteredTheorySlotOptions = (L: number, T: number) => {
+  const allAvailableTheorySlots = TheorySlotOptions;
+
+  if (L === 3 && T === 0) {
+    // Condition: l=3&t=0, a1+ta1 until g
+    // This means single slots "A" through "G" and combined slots "A + TA" through "G + TG"
+    const allowedValues = new Set([
+      "A", "B", "C", "D", "E", "F", "G",
+      "A + TA", "B + TB", "C + TC", "D + TD", "E + TE", "F + TF", "G + TG"
+    ]);
+    return allAvailableTheorySlots.filter(option => allowedValues.has(option.label));
+
+  } else if (L === 2 && T === 0) {
+    // Condition: l=2&t=0, a1,b1 until g1
+    // This means only single slots "A" through "G"
+    const allowedValues = new Set(["A", "B", "C", "D", "E", "F", "G"]);
+    return allAvailableTheorySlots.filter(option => allowedValues.has(option.label));
+
+  } else if (L === 3 && T === 1) {
+    // Condition: l=3&t=1, a1+ta1+taa1 until g
+    // This means single slots "A" through "G", combined slots "A + TA" through "G + TG",
+    // and combined slots "A + TA + TAA" through "D + TD + TDD"
+    const allowedValues = new Set([
+      "A", "B", "C", "D", "E", "F", "G",
+      "A + TA", "B + TB", "C + TC", "D + TD", "E + TE", "F + TF", "G + TG",
+      "A + TA + TAA", "B + TB + TBB", "C + TC + TCC", "D + TD + TDD"
+    ]);
+    return allAvailableTheorySlots.filter(option => allowedValues.has(option.label));
+
+  } else {
+    // Default case: if no specific condition is met, return all available theory slots.
+    return allAvailableTheorySlots;
+  }
+};
+
+// Helper function for building slot options with disabled state.
+function buildSlotOptions(
+  defaultOptions: { value: string; label: string }[],
+  slotsToTeachers: { [slot: string]: Set<string> }
+) {
+  return defaultOptions.map((option) => {
+    const teachers = slotsToTeachers[option.value];
+    return {
+      ...option,
+      disabled: !!teachers,
+      teachers: teachers ? Array.from(teachers) : [],
+    };
+  });
+}
 
 const DraftTableRow = React.memo(function DraftTableRow({
   rec,
@@ -64,7 +115,8 @@ const DraftTableRow = React.memo(function DraftTableRow({
   const forenoonSlots = teacherSelections[rec._id]?.fn || [];
   const afternoonSlots = teacherSelections[rec._id]?.an || [];
 
-  function getAvailableSlots(teacherId?: string) {
+  // Memoize getAvailableSlots to prevent unnecessary re-renders of dependent useMemo hooks
+  const getAvailableSlots = useCallback((teacherId?: string) => {
     const teachers = new Set<string>();
 
     if (teacherId) {
@@ -100,26 +152,12 @@ const DraftTableRow = React.memo(function DraftTableRow({
     });
 
     return slotsToTeachers;
-  }
+  }, [teacherSelections, facultyMap, rec._id]); // Dependencies for useCallback
 
-  function buildSlotOptions(
-    defaultOptions: { value: string; label: string }[],
-    slotsToTeachers: { [slot: string]: Set<string> }
-  ) {
-    return defaultOptions.map((option) => {
-      const teachers = slotsToTeachers[option.value];
-      return {
-        ...option,
-        disabled: !!teachers,
-        teachers: teachers ? Array.from(teachers) : [],
-      };
-    });
-  }
-
-  // common theory slot options for entire row
+  // Common theory slot options for the entire row, dynamically generated based on rec.L and rec.T
   const theorySlotOptions = useMemo(
-    () => buildSlotOptions(TheorySlotOptions, getAvailableSlots()),
-    [teacherSelections, facultyMap, getAvailableSlots]
+    () => buildSlotOptions(getFilteredTheorySlotOptions(rec.L, rec.T), getAvailableSlots()),
+    [rec.L, rec.T, getAvailableSlots] // Dependencies for useMemo
   );
 
   return (
@@ -135,13 +173,16 @@ const DraftTableRow = React.memo(function DraftTableRow({
       {/* Main Theory Slot Input (Common for all teachers) */}
       <TableCell>
         <SlotInput
-          value={teacherSelections[rec._id]?.fn[0]?.theorySlot.split(" + ") || []}
           options={theorySlotOptions || []}
-          placeholder="Enter Theory Slot"
-          onCommit={(value) =>
-            handleSlotChange(rec._id, "fn", "", "theorySlot", value.join(" + "), false)
+          value={
+            theorySlotOptions?.find(
+              (option) => option.value === teacherSelections[rec._id]?.fn[0]?.theorySlot
+            ) || null
           }
-          autoSize={false}
+          onChange={(selectedOption) =>
+            handleSlotChange(rec._id, "fn", "", "theorySlot", selectedOption || "", false)
+          }
+          placeHolder="Select Theory Slot..."
         />
       </TableCell>
       <TableCell>{forenoonSlots.length + afternoonSlots.length}</TableCell>
@@ -166,7 +207,6 @@ const DraftTableRow = React.memo(function DraftTableRow({
               <TooltipContent>Add a new Slot</TooltipContent>
             </Tooltip>
           </div>
-          {/*{Array.from({ length: rec.numOfForenoonSlots }).map((_, k) => (*/}
           {teacherSelections[rec._id]?.fn.map((slot) => (
             <div key={slot._id} className="relative group flex flex-col gap-y-2">
               <DeleteSlotButton onConfirm={() => onRemoveSlot(rec._id, "fn", slot._id, false)} />
@@ -185,19 +225,15 @@ const DraftTableRow = React.memo(function DraftTableRow({
                     );
                     return (
                       <SlotInput
-                        className="max-w-48"
-                        value={slot.labSlot?.split(" + ") || []}
+                        value={
+                          labSlotsForFNTeacher.find(
+                            (option) => option.value === slot.labSlot
+                          ) || null
+                        }
                         options={labSlotsForFNTeacher}
-                        placeholder="Enter Lab Slot"
-                        onCommit={(value) =>
-                          handleSlotChange(
-                            rec._id,
-                            "fn",
-                            slot._id,
-                            "labSlot",
-                            value.join(" + "),
-                            false
-                          )
+                        placeHolder="Enter Lab Slot..."
+                        onChange={(value) =>
+                          handleSlotChange(rec._id, "fn", slot._id, "labSlot", value || "", false)
                         }
                       />
                     );
@@ -253,13 +289,16 @@ const DraftTableRow = React.memo(function DraftTableRow({
                     );
                     return (
                       <SlotInput
-                        placeholder="Enter Lab Slot"
-                        value={slot.labSlot?.split(" + ") || []}
-                        options={labSlotsForANTeacher}
-                        onCommit={(value) =>
-                          handleSlotChange(rec._id, "an", slot._id, "labSlot", value.join(" + "), false)
+                        placeHolder="Enter Lab Slot..."
+                        value={
+                          labSlotsForANTeacher.find(
+                            (option) => option.value === slot.labSlot
+                          ) || null
                         }
-                        className="max-w-48"
+                        options={labSlotsForANTeacher}
+                        onChange={(value) =>
+                          handleSlotChange(rec._id, "an", slot._id, "labSlot", value, false)
+                        }
                       />
                     );
                   })()

@@ -132,8 +132,10 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
       newValue: string,
       fromSocket: boolean
     ) => {
+      console.log('received handleslotchange with params: ', newValue, field);
       const prevRecord = teacherSelectionsRef.current[recordId];
       if (!prevRecord) return;
+      console.log('after return 1')
 
       const updatedSlot = [...prevRecord[slotType]];
 
@@ -153,6 +155,8 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
         };
       }
 
+      console.log('after return 2');
+
       setTeacherSelections((prev) => ({
         ...prev,
         [recordId]: {
@@ -162,12 +166,17 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
       }));
 
       // Check if the slot already exists (in another record) for the teacher
+      console.log(teacherSelections);
+      console.log(teachersMap);
       const oldTeacherId =
         teacherSelections[recordId]?.[slotType]?.find((s) => s._id === id)?.teacher;
-      if (!oldTeacherId) return;
-      checkAndAssignSlots(facultyMapRef.current, recordId, oldTeacherId, newValue, (teacherName, conflicts) => {
-        toast.error(`${teacherName} already has slot(s) ${conflicts.join(" ")} assigned.`);
-      });
+      if (oldTeacherId) {
+        checkAndAssignSlots(facultyMapRef.current, recordId, oldTeacherId, newValue, (teacherName, conflicts) => {
+          toast.error(`${teacherName} already has slot(s) ${conflicts.join(" ")} assigned.`);
+        });
+      }
+
+      console.log('done without errors');
 
       if (!fromSocket) {
         socket.emit("slotUpdate", {
