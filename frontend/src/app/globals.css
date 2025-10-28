@@ -123,3 +123,14 @@
     font-family: var(--font-geist-mono), monospace;
   }
 }
+
+/* Remove number input arrows for all browsers */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield; /* Firefox */
+}

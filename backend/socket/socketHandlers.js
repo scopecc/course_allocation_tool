@@ -1,4 +1,5 @@
 import { Draft } from "../models/draftSchema.js";   // weird bug that doesnt recognize index.js, look into this later
+import { Types } from "mongoose";
 
 const socketHandlers = (io, socket) => {
 
@@ -169,6 +170,53 @@ const socketHandlers = (io, socket) => {
       });
     } catch (err) {
       console.error("Error removing slot:", err);
+    }
+  });
+
+  socket.on("createCourse", async({ senderSocketId, senderDraftId, newCourseData }) => {
+    console.log("Creating course:", { senderDraftId, newCourseData });
+
+    try {
+      const draft = await Draft.findById(senderDraftId);
+      if (!draft) return;
+
+      const newRecord = ({
+        sNo: Number(newCourseData.sNo),
+        year: newCourseData.year,
+        courseTitle: newCourseData.courseTitle,
+        courseCode: newCourseData.courseCode,
+        stream: newCourseData.stream,
+        courseHandlingSchool: newCourseData.courseHandlingSchool,
+        L: Number(newCourseData.L),
+        P: Number(newCourseData.P),
+        T: Number(newCourseData.T),
+        C: Number(newCourseData.C),
+        numOfForenoonSlots: Number(newCourseData.numOfForenoonSlots),
+        numOfAfternoonSlots: Number(newCourseData.numOfAfternoonSlots),
+        forenoonTeachers: Array.from({ length: Number(newCourseData.numOfForenoonSlots) }, () => ({
+          _id: new Types.ObjectId(),
+          teacher: null,
+          theorySlot: "",
+          labSlot: "",
+        })),
+        afternoonTeachers: Array.from({ length: Number(newCourseData.numOfAfternoonSlots) }, () => ({
+          _id: new Types.ObjectId(),
+          teacher: null,
+          theorySlot: "",
+          labSlot: "",
+        })),
+      })
+
+      draft.records.push(newRecord);
+      await draft.save();
+
+      socket.to(senderDraftId).emit("courseCreated", {
+        senderSocketId,
+        senderDraftId,
+        newRecord,
+      });
+    } catch (err) {
+      console.error("Error creating course:", err);
     }
   });
 
