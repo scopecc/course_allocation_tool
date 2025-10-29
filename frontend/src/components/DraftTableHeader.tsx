@@ -47,6 +47,7 @@ export function DraftTableHeader({ allFields, visibleFields, sortBy, sortDirecti
       <TableHead>Total Slots</TableHead>
       <TableHead>FN Teachers</TableHead>
       <TableHead>AN Teachers</TableHead>
+      <TableHead> </TableHead>
     </TableRow>
   )
 };

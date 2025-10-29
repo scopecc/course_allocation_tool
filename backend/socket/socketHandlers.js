@@ -220,6 +220,50 @@ const socketHandlers = (io, socket) => {
     }
   });
 
+  socket.on("deleteCourse", async ({ senderSocketId, senderDraftId, recordId }) => {
+    console.log("Deleting course:", { senderDraftId, recordId });
+
+    try {
+      const draft = await Draft.findById(senderDraftId);
+      if (!draft) return;
+
+      const record = draft.records.id(recordId);
+      if (!record) return;
+
+      const teachersInRecord = [
+        ...record.forenoonTeachers,
+        ...record.afternoonTeachers,
+      ];
+
+      for (const slot of teachersInRecord) {
+        if (slot.teacher) {
+          const teacherId = slot.teacher.toString();
+          const facultyMember = draft.faculty.find(
+            (fac) => fac._id.toString() === teacherId
+          );
+          if (facultyMember) {
+            facultyMember.loadedT = Math.max(0, facultyMember.loadedT - 1);
+            if (record.P > 0) {
+              facultyMember.loadedL = Math.max(0, facultyMember.loadedL - 1);
+            }
+          }
+        }
+      }
+
+      record.deleteOne();
+
+      await draft.save();
+
+      io.in(senderDraftId).emit("courseDeleted", {
+        senderSocketId,
+        senderDraftId,
+        recordId,
+      });
+    } catch (err) {
+      console.error("Error deleting course:", err);
+    }
+  });
+
   socket.on("disconnect", () => {
     console.log("Client disconnected: ", socket.id);
   });

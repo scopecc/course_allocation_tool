@@ -43,7 +43,7 @@ type FormData = {
   numOfForenoonSlots: string;
 };
 
-export function NewCourseModal({ draftId }: { draftId: string }) {
+export function NewCourseModal({ draftId, onSubmit }: { draftId: string, onSubmit: () => void }) {
   const socket = useSocket();
 
   const [formData, setFormData] = useState<FormData>({
@@ -99,6 +99,8 @@ export function NewCourseModal({ draftId }: { draftId: string }) {
       numOfAfternoonSlots: "",
       numOfForenoonSlots: "",
     });
+
+    onSubmit();
   };
 
   return (

@@ -12,6 +12,7 @@ import { Button } from "./ui";
 import { PlusIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import DeleteSlotButton from "./DeleteSlotButton";
+import DeleteRecordButton from "./DeleteRecordButton";
 
 // Helper function for filtering theory slot options based on L and T values.
 const getFilteredTheorySlotOptions = (L: number, T: number) => {
@@ -76,6 +77,7 @@ const DraftTableRow = React.memo(function DraftTableRow({
   facultyMap,
   onAddSlot,
   onRemoveSlot,
+  onDeleteCourse,
 }: {
   rec: Record;
   allFields: Field[];
@@ -111,6 +113,7 @@ const DraftTableRow = React.memo(function DraftTableRow({
     id: string,
     fromSocket: boolean
   ) => void;
+  onDeleteCourse: (recordId: string) => void;
 }) {
   const forenoonSlots = teacherSelections[rec._id]?.fn || [];
   const afternoonSlots = teacherSelections[rec._id]?.an || [];
@@ -306,6 +309,9 @@ const DraftTableRow = React.memo(function DraftTableRow({
             </div>
           ))}
         </div>
+      </TableCell>
+      <TableCell>
+        <DeleteRecordButton onConfirm={() => onDeleteCourse(rec._id)} />
       </TableCell>
     </TableRow>
   );

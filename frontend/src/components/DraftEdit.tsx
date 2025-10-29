@@ -379,6 +379,18 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
     [draftId, teacherSelections, draft?.records]
   );
 
+  const handleDeleteCourse = useCallback(
+    (recordId: string) => {
+      socket.emit("deleteCourse", {
+        senderSocketId: socket.id,
+        senderDraftId: draftId,
+        recordId: recordId,
+      });
+      fetchDraft();
+    },
+    [draftId, socket]
+  );
+
   // socket updates useEffect
   useEffect(() => {
     if (!connectedToDraft.current) {
@@ -475,20 +487,34 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
     const handleCourseCreate = ({
       senderSocketId,
       senderDraftId,
-      newRecord
+      newRecord,
     }: {
       senderSocketId: string;
       senderDraftId: string;
       newRecord: Record;
     }): void => {
-      if (senderSocketId === socket.id) return;
-      if (draftId === senderDraftId) {
-        setDraft((prev) =>
-          prev
-            ? { ...prev, records: [...prev.records, newRecord] }
-            : prev
-        );
+      if (senderSocketId === socket.id) {
+        fetchDraft();
       }
+      if (draftId === senderDraftId) {
+        setDraft((prev) => (prev ? { ...prev, records: [...prev.records, newRecord] } : prev));
+        fetchDraft();
+      }
+    };
+
+    const handleCourseDelete = ({
+      senderSocketId,
+      recordId,
+    }: {
+      senderSocketId: string;
+      recordId: string;
+    }): void => {
+      if (senderSocketId === socket.id) return;
+      setDraft((prev) => {
+        if (!prev) return prev;
+        const updatedRecords = prev.records.filter((record) => record._id !== recordId);
+        return { ...prev, records: updatedRecords };
+      });
     };
 
     socket.on("slotUpdated", handleSlotUpdate);
@@ -496,6 +522,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
     socket.on("slotAdded", handleAddSlotUpdate);
     socket.on("slotRemoved", handleRemoveSlotUpdate);
     socket.on("courseCreated", handleCourseCreate);
+    socket.on("courseDeleted", handleCourseDelete);
 
     return () => {
       socket.off("slotUpdated", handleSlotUpdate);
@@ -503,6 +530,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
       socket.off("slotAdded", handleAddSlotUpdate);
       socket.off("slotRemoved", handleRemoveSlotUpdate);
       socket.off("courseCreated", handleCourseCreate);
+      socket.off("courseDeleted", handleCourseDelete);
     };
   }, [draftId, handleAddSlot, handleRemoveSlot, handleSlotChange, handleTeacherChange]);
 
@@ -677,7 +705,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
         </div>
 
         <div className="flex flex-row items-center gap-x-2">
-          <NewCourseModal draftId={draft._id} />
+          <NewCourseModal draftId={draft._id} onSubmit={fetchDraft} />
           <ColumnSelector
             allFields={allFields}
             visibleFields={visibleFields}
@@ -712,6 +740,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
                 facultyMap={facultyMapRef.current}
                 onAddSlot={handleAddSlot}
                 onRemoveSlot={handleRemoveSlot}
+                onDeleteCourse={handleDeleteCourse}
               />
             ))}
           </TableBody>
