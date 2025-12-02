@@ -19,18 +19,28 @@ const socketHandlers = (io, socket) => {
 
     // find record and update teacher for course
     const record = draft.records.id(recordId);
-    if (!record) return;
+    if (!record) {
+      console.log('Error: record not found for id', recordId);
+      return;
+    };
 
     let slot;
     if (slotType === "fn") {
       slot = record.forenoonTeachers.id(id);
     } else if (slotType === "an") {
       slot = record.afternoonTeachers.id(id);
+    } else {
+      console.log('Unknown slot type');
+      return;
     }
-    if (!slot) return;
 
-    let oldTeacherId = slot.teacher;
-    slot.teacher = newTeacherId;
+    if (!slot) {
+      console.log('Error: slot not found for id', id, 'on recordId', recordId);
+      return;
+    }
+
+    let oldTeacherId = slot.teacher ? slot.teacher.toString() : null;
+    slot.teacher = newTeacherId ? newTeacherId.toString() : null;
 
     // find teacher and update teacher's load values
     if (oldTeacherId) {
@@ -40,14 +50,21 @@ const socketHandlers = (io, socket) => {
         if (recordP > 0) {
           oldFaculty.loadedL = Math.max(0, oldFaculty.loadedL - 1);
         }
+      } else {
+        console.log('Warning: oldFaculty not found in draft.faculty for id', oldTeacherId);
       }
     }
 
-    const newFaculty = slot.teacher;
-    if (newFaculty) {
-      newFaculty.loadedT += 1;
-      if (recordP > 0) {
-        newFaculty.loadedL += 1;
+    // increment loads for new teacher 
+    if (newTeacherId) {
+      const newFaculty = draft.faculty.find(fac => fac._id.toString() === newTeacherId.toString());
+      if (newFaculty) {
+        newFaculty.loadedT = (newFaculty.loadedT || 0) + 1;
+        if (recordP > 0) {
+          newFaculty.loadedL = (newFaculty.loadedL || 0) + 1;
+        }
+      } else {
+        console.log('Warning: newFaculty not found in draft.faculty for id', newTeacherId);
       }
     }
 
@@ -88,9 +105,9 @@ const socketHandlers = (io, socket) => {
     } else if (field === "labSlot") {
       // Update only this specific slot
       let slot;
-      if (slotType === "fn"){
+      if (slotType === "fn") {
         slot = record.forenoonTeachers.id(id);
-      } else if (slotType === "an"){
+      } else if (slotType === "an") {
         slot = record.afternoonTeachers.id(id);
       }
       if (slot) slot.labSlot = newSelection;
@@ -141,8 +158,8 @@ const socketHandlers = (io, socket) => {
     }
   });
 
-  socket.on("removeSlot", async({ senderSocketId, senderDraftId, recordId, slotType, id }) => {
-    console.log("Removing slot:", { senderDraftId, recordId, slotType});
+  socket.on("removeSlot", async ({ senderSocketId, senderDraftId, recordId, slotType, id }) => {
+    console.log("Removing slot:", { senderDraftId, recordId, slotType });
 
     try {
       const draft = await Draft.findById(senderDraftId);
@@ -173,7 +190,7 @@ const socketHandlers = (io, socket) => {
     }
   });
 
-  socket.on("createCourse", async({ senderSocketId, senderDraftId, newCourseData }) => {
+  socket.on("createCourse", async ({ senderSocketId, senderDraftId, newCourseData }) => {
     console.log("Creating course:", { senderDraftId, newCourseData });
 
     try {
