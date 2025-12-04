@@ -167,8 +167,8 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
       }));
 
       // Check if the slot already exists (in another record) for the teacher
-      console.log(teacherSelections);
-      console.log(teachersMap);
+      console.log('in handleslotchange, teacherSelections: ', teacherSelections);
+      console.log('in handleslotchange, teachersmap: ', teachersMap);
       const oldTeacherId = teacherSelections[recordId]?.[slotType]?.find(
         (s) => s._id === id
       )?.teacher;
@@ -209,79 +209,89 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
    * and that teacher has the same slot in their set
    */
 
-  const handleTeacherChange = useCallback(
-    (
-      recordId: string,
-      recordP: number,
-      slotType: "fn" | "an",
-      id: string,
-      newTeacherId: string,
-      fromSocket: boolean
-    ) => {
-      setTeacherSelections((prev) => {
-        const recordSlot = prev[recordId]?.[slotType] || [];
-        const updatedSlot = [...recordSlot];
-        const slotIndex = updatedSlot.findIndex((slot) => slot._id === id);
-        if (slotIndex === -1) return prev;
+   const handleTeacherChange = useCallback(
+       (
+         recordId: string,
+         recordP: number,
+         slotType: "fn" | "an",
+         id: string,
+         newTeacherId: string | null,
+         fromSocket: boolean
+       ) => {
 
-        const oldTeacherId = updatedSlot[slotIndex]?.teacher;
-        if (oldTeacherId === newTeacherId) return prev;
+         // capture the old teacher before updating state
+         const currentRecordSlots = teacherSelections[recordId]?.[slotType] || [];
+         const currentSlot = currentRecordSlots.find((slot) => slot._id === id) ?? null;
+         const oldTeacher = currentSlot?.teacher;
 
-        if (!updatedSlot[slotIndex] || oldTeacherId === newTeacherId) return prev;
+         // didnt change, do nothing
+         if (oldTeacher === newTeacherId) return;
 
-        updatedSlot[slotIndex] = {
-          ...updatedSlot[slotIndex],
-          teacher: newTeacherId,
-        };
+         console.log("teacherSelections: ", teacherSelections);
+         // change null to undefined based on what we are seeing here
+         setTeacherSelections((prev) => {
+           const recordSlot = prev[recordId]?.[slotType] || [];
+           const updatedSlot = [...recordSlot];
+           const slotIndex = updatedSlot.findIndex((slot) => slot._id === id);
 
-        return {
-          ...prev,
-          [recordId]: {
-            ...prev[recordId],
-            [slotType]: updatedSlot,
-          },
-        };
-      });
+           if (slotIndex === -1) return prev;
 
-      // add the set of slots to the newly selected teacher, remove the set of slots from the old teacher (if any)
-      const recordSlot = teacherSelections[recordId]?.[slotType] || [];
-      const currentSlot = recordSlot.find((slot) => slot._id === id) ?? null;
-      const oldTeacher = currentSlot?.teacher;
-      if (currentSlot) {
-        updateTeacherSlots(teachersMap, recordId, oldTeacher, newTeacherId, currentSlot);
-      }
+           // update the slot with the new Id (or null)
+           updatedSlot[slotIndex] = {
+             ...updatedSlot[slotIndex],
+             teacher: newTeacherId || null,
+           };
 
-      // efficiently update teacher load counts
-      const teachersLoadMap = new Map(availableTeachersRef.current?.map((t) => [t._id, { ...t }]));
+           return {
+             ...prev,
+             [recordId]: {
+               ...prev[recordId],
+               [slotType]: updatedSlot,
+             },
+           };
+         });
 
-      if (oldTeacher && teachersLoadMap.has(oldTeacher)) {
-        const t = teachersLoadMap.get(oldTeacher)!;
-        t.loadedT = Math.max(0, t.loadedT - 1);
-        if (recordP > 0) t.loadedL = Math.max(0, t.loadedL - 1);
-      }
+         if (currentSlot) {
+           updateTeacherSlots(teachersMap, recordId, oldTeacher, newTeacherId, currentSlot);
+         }
 
-      if (newTeacherId && teachersLoadMap.has(newTeacherId)) {
-        const t = teachersLoadMap.get(newTeacherId)!;
-        t.loadedT += 1;
-        if (recordP > 0) t.loadedL += 1;
-      }
+         // efficiently update load counts
+         const teachersLoadMap = new Map(
+           availableTeachersRef.current?.map((t) => [t._id, { ...t }])
+         );
 
-      availableTeachersRef.current = Array.from(teachersLoadMap.values());
+         // handle old teacher's slots (Freed up)
+         if (oldTeacher && teachersLoadMap.has(oldTeacher)) {
+           const t = teachersLoadMap.get(oldTeacher)!;
+           t.loadedT = Math.max(0, t.loadedT - 1);
+           if (recordP > 0) t.loadedL = Math.max(0, t.loadedL - 1);
+         }
 
-      if (!fromSocket) {
-        socket.emit("teacherUpdate", {
-          senderSocketId: socket.id,
-          senderDraftId: draftId,
-          recordId: recordId,
-          recordP: recordP,
-          slotType: slotType,
-          id: id,
-          newTeacherId: newTeacherId,
-        });
-      }
-    },
-    [draftId]
-  );
+         // handle new teacher's slots (Occupied)
+         // Only increment load if a valid teacher was selected (not null)
+         if (newTeacherId && teachersLoadMap.has(newTeacherId)) {
+           const t = teachersLoadMap.get(newTeacherId)!;
+           t.loadedT += 1;
+           if (recordP > 0) t.loadedL += 1;
+         }
+
+         // save updated loads back to ref
+         availableTeachersRef.current = Array.from(teachersLoadMap.values());
+
+         if (!fromSocket) {
+           socket.emit("teacherUpdate", {
+             senderSocketId: socket.id,
+             senderDraftId: draftId,
+             recordId: recordId,
+             recordP: recordP,
+             slotType: slotType,
+             id: id,
+             newTeacherId: newTeacherId, // This sends null correctly
+           });
+         }
+       },
+       [draftId, teacherSelections]
+     );
 
   // function to add a slot to a record using the + button
   const handleAddSlot = useCallback(
@@ -574,6 +584,7 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
         };
         [...rec.forenoonTeachers, ...rec.afternoonTeachers].forEach((t) => {
           if (!t.teacher) return;
+          const teacher = t.teacher;
           if (!facultySlotMap[t.teacher]) {
             facultySlotMap[t.teacher] = {};
           }
@@ -584,11 +595,11 @@ export default function DraftEdit({ draftId }: DraftViewProps) {
           if (t.theorySlot !== "")
             t.theorySlot
               .split(" + ")
-              .forEach((tslot) => facultySlotMap[t.teacher][rec._id].add(tslot));
+              .forEach((tslot) => facultySlotMap[teacher][rec._id].add(tslot));
           if (t.labSlot && t.labSlot !== "")
             t.labSlot
               ?.split(" + ")
-              .forEach((lslot) => facultySlotMap[t.teacher][rec._id].add(lslot));
+              .forEach((lslot) => facultySlotMap[teacher][rec._id].add(lslot));
         });
       });
       setTeacherSelections(initialSelections);

@@ -6,7 +6,7 @@ import { Faculty } from "@/types/faculty";
 import { TeacherSelections } from "@/types/teacherSelection";
 import { Field } from "@/types/Field";
 import { SlotInput } from "./SlotInput";
-import { LabSlotOptions, TheorySlotOptions } from "@/types/SlotOptions";
+import { ForenoonLabSlotOptions, AfternoonLabSlotOptions, TheorySlotOptions } from "@/types/SlotOptions";
 import { FacultyMap } from "@/types/FacultyMap";
 import { Button } from "./ui";
 import { PlusIcon } from "lucide-react";
@@ -18,28 +18,24 @@ import DeleteRecordButton from "./DeleteRecordButton";
 const getFilteredTheorySlotOptions = (L: number, T: number) => {
   const allAvailableTheorySlots = TheorySlotOptions;
 
-  if (L === 3 && T === 0) {
-    // Condition: l=3&t=0, a1+ta1 until g
-    // This means single slots "A" through "G" and combined slots "A + TA" through "G + TG"
+  if (L + T == 3) {
+    // Condition: l + t = 3, a1+ta1 until g
+    // This means combined slots "A + TA" through "G + TG"
     const allowedValues = new Set([
-      "A", "B", "C", "D", "E", "F", "G",
       "A + TA", "B + TB", "C + TC", "D + TD", "E + TE", "F + TF", "G + TG"
     ]);
     return allAvailableTheorySlots.filter(option => allowedValues.has(option.label));
 
-  } else if (L === 2 && T === 0) {
-    // Condition: l=2&t=0, a1,b1 until g1
+  } else if (L + T == 2) {
+    // Condition: l + t = 2, a1,b1 until g1
     // This means only single slots "A" through "G"
     const allowedValues = new Set(["A", "B", "C", "D", "E", "F", "G"]);
     return allAvailableTheorySlots.filter(option => allowedValues.has(option.label));
 
-  } else if (L === 3 && T === 1) {
-    // Condition: l=3&t=1, a1+ta1+taa1 until g
-    // This means single slots "A" through "G", combined slots "A + TA" through "G + TG",
-    // and combined slots "A + TA + TAA" through "D + TD + TDD"
+  } else if (L + T == 4) {
+    // Condition: l + t = 4, a1+ta1+taa1 until g
+    // This means combined slots "A + TA + TAA" through "D + TD + TDD"
     const allowedValues = new Set([
-      "A", "B", "C", "D", "E", "F", "G",
-      "A + TA", "B + TB", "C + TC", "D + TD", "E + TE", "F + TF", "G + TG",
       "A + TA + TAA", "B + TB + TBB", "C + TC + TCC", "D + TD + TDD"
     ]);
     return allAvailableTheorySlots.filter(option => allowedValues.has(option.label));
@@ -55,12 +51,60 @@ function buildSlotOptions(
   defaultOptions: { value: string; label: string }[],
   slotsToTeachers: { [slot: string]: Set<string> }
 ) {
-  return defaultOptions.map((option) => {
-    const teachers = slotsToTeachers[option.value];
+  console.log("buildSlotOptions");
+  console.log("defaultoptions: ", defaultOptions, "\nslotstoteachers: ", slotsToTeachers);
+
+  // helper: extract base + numeric suffix
+  const parse = (slot: string) => {
+    const m = slot.trim().match(/^([A-Za-z]+)(\d+)?$/);
+    if (!m) return { base: slot.trim().toUpperCase(), suffix: null };
+    return { base: m[1].toUpperCase(), suffix: m[2] ?? null };
+  };
+
+  return defaultOptions.map(option => {
+    const slotParts = option.value
+      .split(/\s*\+\s*/)
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    const matchedSets: Set<string>[] = [];
+
+    slotParts.forEach(optSlot => {
+      const { base: optBase } = parse(optSlot);
+
+      Object.entries(slotsToTeachers).forEach(([takenSlot, set]) => {
+        const { base: tBase } = parse(takenSlot);
+
+        // Theory: bases in A-G or starting with T (TA, TB, TC...)
+        const isTheoryBase = /^[A-G]$/.test(optBase) || /^T[A-Z]+$/.test(optBase);
+
+        if (isTheoryBase) {
+          // THEORY MATCHING → Strip digits, match only base
+          if (optBase === tBase) {
+            matchedSets.push(set);
+          }
+        } else {
+          // LAB MATCHING → exact full match only
+          if (optSlot === takenSlot) {
+            matchedSets.push(set);
+          }
+        }
+      });
+    });
+
+    // Remove duplicates
+    const uniqueSets = Array.from(new Set(matchedSets));
+
+    const disabled = uniqueSets.some(s => s && s.size > 0);
+
+    const teachers = Array.from(
+      new Set(uniqueSets.flatMap(s => Array.from(s)))
+    );
+
     return {
       ...option,
-      disabled: !!teachers,
-      teachers: teachers ? Array.from(teachers) : [],
+      disabled,
+      teachers
     };
   });
 }
@@ -94,7 +138,7 @@ const DraftTableRow = React.memo(function DraftTableRow({
     recordP: number,
     slotType: "fn" | "an",
     id: string,
-    newTeacherId: string,
+    newTeacherId: string | null,
     fromSocket: boolean
   ) => void;
   handleSlotChange: (
@@ -158,10 +202,44 @@ const DraftTableRow = React.memo(function DraftTableRow({
   }, [teacherSelections, facultyMap, rec._id]); // Dependencies for useCallback
 
   // Common theory slot options for the entire row, dynamically generated based on rec.L and rec.T
-  const theorySlotOptions = useMemo(
-    () => buildSlotOptions(getFilteredTheorySlotOptions(rec.L, rec.T), getAvailableSlots()),
-    [rec.L, rec.T, getAvailableSlots] // Dependencies for useMemo
-  );
+  const theorySlotOptions = useMemo(() => {
+    // collect selected teacher ids for THIS record (both fn & an)
+    const selectedTeacherIds = new Set<string>();
+    (teacherSelections?.[rec._id]?.fn || []).forEach(s => {
+      if (s.teacher) selectedTeacherIds.add(s.teacher);
+    });
+    (teacherSelections?.[rec._id]?.an || []).forEach(s => {
+      if (s.teacher) selectedTeacherIds.add(s.teacher);
+    });
+
+    // build slotsToTeachers map from facultyMap for those selected teachers
+    const slotsToTeachers: { [slot: string]: Set<string> } = {};
+
+    selectedTeacherIds.forEach(teacherId => {
+      const teacherSlots = facultyMap?.[teacherId]?.slots ?? {};
+      const teacherName = facultyMap?.[teacherId]?.name ?? teacherId;
+
+      Object.entries(teacherSlots).forEach(([recordId, slotSet]) => {
+        // keep your previous behavior: ignore slots from the same record
+        if (recordId === rec._id) return;
+        slotSet.forEach((slotName: string) => {
+          if (!slotsToTeachers[slotName]) slotsToTeachers[slotName] = new Set();
+          slotsToTeachers[slotName].add(teacherName);
+        });
+      });
+    });
+
+    // 3) filter Theory slot options based on L & T, then build them
+    const filtered = getFilteredTheorySlotOptions(rec.L, rec.T);
+    return buildSlotOptions(filtered, slotsToTeachers);
+  }, [
+    // re-run whenever any of these change:
+    rec.L,
+    rec.T,
+    rec._id,
+    facultyMap,                 // if facultyMap changes, recompute
+    teacherSelections           // if selections change (parent should pass new object), recompute
+  ]);
 
   return (
     <TableRow key={rec._id}>
@@ -223,9 +301,10 @@ const DraftTableRow = React.memo(function DraftTableRow({
                 ? (() => {
                     // separate lab slot options specific to each teacher
                     const labSlotsForFNTeacher = buildSlotOptions(
-                      LabSlotOptions,
+                      AfternoonLabSlotOptions,   // Afternoon lab slot options for FN teacher
                       getAvailableSlots(slot.teacher || "")
                     );
+                    console.log('after buildslotoptions: ', labSlotsForFNTeacher);
                     return (
                       <SlotInput
                         value={
@@ -286,8 +365,9 @@ const DraftTableRow = React.memo(function DraftTableRow({
               {rec.P > 0 && slot.teacher
                 ? (() => {
                     // separate lab slot options specific to each teacher
+                    console.log('available slots for teacher: ', slot.teacher, getAvailableSlots(slot.teacher || ""));
                     const labSlotsForANTeacher = buildSlotOptions(
-                      LabSlotOptions,
+                      ForenoonLabSlotOptions,   // FN lab slot options for AN teacher
                       getAvailableSlots(slot.teacher || "")
                     );
                     return (

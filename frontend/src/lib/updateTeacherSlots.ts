@@ -3,8 +3,8 @@ import { FacultyMap } from "@/types/FacultyMap";
 export default function updateTeacherSlots(
   teachersMap: FacultyMap | null,
   recordId: string,
-  oldTeacherId: string | undefined,
-  newTeacherId: string,
+  oldTeacherId: string | undefined | null,
+  newTeacherId: string | null,
   slotAssignment: { theorySlot?: string; labSlot?: string }
 ) {
   if (!teachersMap) return;
@@ -31,4 +31,3 @@ export default function updateTeacherSlots(
     teachersMap[newTeacherId].slots[recordId] = assignedSlots;
   }
 }
-

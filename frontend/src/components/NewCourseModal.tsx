@@ -31,7 +31,6 @@ type FormData = {
   [key: string]: string;
   courseCode: string;
   courseTitle: string;
-  sNo: string;
   year: string;
   stream: string;
   L: string;
@@ -49,7 +48,6 @@ export function NewCourseModal({ draftId, onSubmit }: { draftId: string, onSubmi
   const [formData, setFormData] = useState<FormData>({
     courseCode: "",
     courseTitle: "",
-    sNo: "",
     year: "",
     stream: "",
     L: "",
@@ -88,7 +86,6 @@ export function NewCourseModal({ draftId, onSubmit }: { draftId: string, onSubmi
     setFormData({
       courseCode: "",
       courseTitle: "",
-      sNo: "",
       year: "",
       stream: "",
       L: "",
@@ -144,18 +141,7 @@ export function NewCourseModal({ draftId, onSubmit }: { draftId: string, onSubmi
                   />
                 </Field>
               </div>
-              <div className="grid grid-cols-3 gap-4">
-                <Field>
-                  <FieldLabel htmlFor="sNo">S.No</FieldLabel>
-                  <Input
-                    id="sNo"
-                    value={formData.sNo}
-                    type="number"
-                    onChange={handleChange}
-                    placeholder="Serial Number"
-                    className="input input-bordered w-full"
-                  />
-                </Field>
+              <div className="grid grid-cols-2 gap-4">
                 <Field>
                   <FieldLabel htmlFor="year">Year</FieldLabel>
                   <Select

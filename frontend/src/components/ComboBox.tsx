@@ -21,7 +21,7 @@ import { Faculty } from "@/types/faculty";
 interface ComboBoxProps {
   options: Faculty[] | undefined;
   value: Faculty | null;
-  onChange: (value: string) => void;
+  onChange: (value: string | null) => void;
   placeHolder: string;
 }
 
@@ -65,10 +65,30 @@ export default function ComboBox({
             </CommandGroup>
             <CommandSeparator />
             <CommandGroup>
+              <CommandItem
+                value="none no teacher clear"
+                onSelect={() => {
+                  onChange(null);
+                  setOpen(false);
+                }}
+                className="flex items-center border-b italic text-muted-foreground"
+              >
+                <div className="flex justify-between w-full">
+                  <span className="ml-3">No Teacher</span>
+                </div>
+                <Check
+                  className={cn(
+                    "ml-auto",
+                    value === null ? "opacity-100" : "opacity-0"
+                  )}
+                />
+              </CommandItem>
               {options?.map((option) => (
                 <CommandItem
                   key={option._id}
-                  value={option.name}
+                  // value={`${option.name} ${option.employeeId}`}
+                  value = {option.name}
+                  keywords={[option.employeeId, option.name, option.prefix]}
                   onSelect={() => {
                     onChange(option._id);
                     setOpen(false);

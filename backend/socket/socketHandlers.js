@@ -55,7 +55,7 @@ const socketHandlers = (io, socket) => {
       }
     }
 
-    // increment loads for new teacher 
+    // increment loads for new teacher
     if (newTeacherId) {
       const newFaculty = draft.faculty.find(fac => fac._id.toString() === newTeacherId.toString());
       if (newFaculty) {
@@ -197,8 +197,18 @@ const socketHandlers = (io, socket) => {
       const draft = await Draft.findById(senderDraftId);
       if (!draft) return;
 
+
+      // find max sNo in existing records, and add 1 to it
+      let nextSNo = 1;
+      if (draft.records.length > 0) {
+        const maxSNo = Math.max(
+          ...draft.records.map((r) => Number(r.sNo) || 0)
+        );
+        nextSNo = maxSNo + 1;
+      }
+
       const newRecord = ({
-        sNo: Number(newCourseData.sNo),
+        sNo: nextSNo,
         year: newCourseData.year,
         courseTitle: newCourseData.courseTitle,
         courseCode: newCourseData.courseCode,

@@ -1,5 +1,5 @@
 import { TrashIcon } from "lucide-react";
-import { Button } from "@/components/ui/button"; // ✅ correct import
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,

@@ -20,7 +20,7 @@ export default function checkAndAssignSlots(
   const newSlots = newValue.split(" + ");
   const otherSlots = new Set<string>();
 
-  // collect slots assigned in records other than this one 
+  // collect slots assigned in records other than this one
   for (const [rid, set] of Object.entries(teacher.slots ?? {})) {
     if (rid !== recordId) {
       set.forEach((s) => otherSlots.add(s));
@@ -42,4 +42,3 @@ export default function checkAndAssignSlots(
   // update slots
   teacher.slots[recordId] = new Set(newSlots);
 }
-

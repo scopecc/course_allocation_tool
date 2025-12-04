@@ -17,7 +17,6 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { CommandSeparator } from "cmdk";
 
-
 interface SlotInputProps {
   value: { value: string, label: string } | null;
   placeHolder: string;
@@ -46,28 +45,59 @@ export const SlotInput = ({ value, placeHolder, options, onChange }: SlotInputPr
             <CommandEmpty>No Teachers Left.</CommandEmpty>
             <CommandSeparator />
             <CommandGroup>
-              {options?.map((option) => (
-                <CommandItem
-                  key={option.value}
-                  value={option.value}
-                  onSelect={() => {
-                    onChange(option.value);
-                    setOpen(false);
-                  }}
-                  className="flex items-center"
-                >
-                  <div className="flex justify-between w-full">
-                    {option.label}
-                  </div>
+              {options?.map((option) => {
+                const isDisabled = !!option.disabled;
+                const isSelected = value?.value === option.value;
 
-                  <Check
+                return (
+                  <CommandItem
+                    key={option.value}
+                    value={option.value}
+                    // guard selection so disabled items can't be chosen
+                    onSelect={() => {
+                      if (isDisabled) return;
+                      onChange(option.value);
+                      setOpen(false);
+                    }}
+                    // accessibility + keyboard
+                    aria-disabled={isDisabled}
+                    tabIndex={isDisabled ? -1 : 0}
                     className={cn(
-                      "ml-auto",
-                      value?.value === option.value ? "opacity-100" : "opacity-0"
+                      "flex items-center px-3 py-2",
+                      isDisabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer",
+                      "group" // keep a group for nested styles if needed
                     )}
-                  />
-                </CommandItem>
-              ))}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex flex-col">
+                        <span className={cn(isDisabled ? "text-muted-foreground" : "")}>
+                          {option.label}
+                        </span>
+                        {/* Optional: show teacher names in smaller text */}
+                        {option.teachers && option.teachers.length > 0 && (
+                          <span className="text-xs text-muted-foreground mt-0.5">
+                            {option.teachers.join(", ")}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="ml-3 flex items-center space-x-2">
+                        {/* optionally show a small badge when disabled */}
+                        {isDisabled && (
+                          <span className="text-xs text-muted-foreground">taken</span>
+                        )}
+
+                        <Check
+                          className={cn(
+                            "ml-auto transition-opacity",
+                            isSelected && !isDisabled ? "opacity-100" : (isSelected && isDisabled ? "opacity-60" : "opacity-0")
+                          )}
+                        />
+                      </div>
+                    </div>
+                  </CommandItem>
+                );
+              })}
             </CommandGroup>
           </CommandList>
         </Command>
