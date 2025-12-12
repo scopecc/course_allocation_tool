@@ -39,7 +39,12 @@ const ForenoonLabSlotOptions = [
   { value: "L23 + L24", label: "L23 + L24" },
   { value: "L25 + L26", label: "L25 + L26" },
   { value: "L27 + L28", label: "L27 + L28" },
-  { value: "L29 + L30", label: "L29 + L30" }
+  { value: "L29 + L30", label: "L29 + L30" },
+  { value: "L35 + L36", label: "L35 + L36" },
+  { value: "L41 + L42", label: "L41 + L42" },
+  { value: "L47 + L48", label: "L47 + L48" },
+  { value: "L53 + L54", label: "L53 + L54" },
+  { value: "L59 + L60", label: "L59 + L60" }
 ]
 const AfternoonLabSlotOptions = [
   { value: "L31 + L32", label: "L31 + L32" },
@@ -57,6 +62,9 @@ const AfternoonLabSlotOptions = [
   { value: "L55 + L56", label: "L55 + L56" },
   { value: "L57 + L58", label: "L57 + L58" },
   { value: "L59 + L60", label: "L59 + L60" },
+  { value: "L5 + L6", label: "L5 + L6" },
+  { value: "L11 + L12", label: "L11 + L12" },
+  { value: "L23 + L24", label: "L23 + L24" }
 ];
 
 export { TheorySlotOptions, ForenoonLabSlotOptions, AfternoonLabSlotOptions }

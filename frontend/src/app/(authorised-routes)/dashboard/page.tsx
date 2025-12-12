@@ -63,7 +63,7 @@ const Dashboard = () => {
           <CreateDraftModal onSubmit={handleCreateDraft} />
         </div>
       </div>
-      <Card className="rounded-2xl border shadow-sm overflow-hidden w-full max-w-7xl mt-0">
+      <Card className="rounded-2xl border shadow-sm overflow-hidden w-full max-w-9xl mt-0">
         {loading ? (
           <p className="p-4">Loading drafts...</p>
         ) : drafts.length === 0 ? (
